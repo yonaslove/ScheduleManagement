@@ -16,6 +16,21 @@ const pool = new Pool({
   database: process.env.DB_NAME || 'schedule_management',
 });
 
+// Default status route
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Schedule Management PostgreSQL Backend API is running.',
+    frontendUrl: 'http://localhost:3000',
+    endpoints: {
+      health: 'GET /api/health',
+      login: 'POST /api/auth/login',
+      register: 'POST /api/auth/register',
+      syncSave: 'POST /api/sync/save',
+      syncLoad: 'GET /api/sync/load/:userId'
+    }
+  });
+});
+
 // Health check
 app.get('/api/health', async (req, res) => {
   try {
