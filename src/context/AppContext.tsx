@@ -23,11 +23,19 @@ import {
   DEFAULT_SETTINGS
 } from '../data/initialData';
 
-// Fikirte's pre-configured Public Health account
+// Pre-configured accounts: Frehiwet / Fikirte (Public Health)
 const DEFAULT_ACCOUNTS: UserAccount[] = [
   {
     id: FIKIRTE_USER_ID,
-    name: 'Fikirte (Rep)',
+    name: 'Frehiwet (Fre)',
+    email: 'fre@gmail.com',
+    passwordHash: '12345678F',
+    program: 'Public Health (Year II, Sem I)',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'usr_fikirte_legacy',
+    name: 'Frehiwet (Fre)',
     email: 'fikirte@university.edu',
     passwordHash: 'demo123',
     program: 'Public Health (Year II, Sem I)',
@@ -110,7 +118,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [accounts, setAccounts] = useState<UserAccount[]>(() => {
     try {
       const saved = localStorage.getItem(GLOBAL_ACCOUNTS_KEY);
-      return saved ? JSON.parse(saved) : DEFAULT_ACCOUNTS;
+      if (saved) {
+        const parsed: UserAccount[] = JSON.parse(saved);
+        // Ensure default accounts (like fre@gmail.com) exist or get updated with fresh credentials
+        const merged = [...parsed];
+        for (const def of DEFAULT_ACCOUNTS) {
+          const idx = merged.findIndex((a) => a.email.toLowerCase() === def.email.toLowerCase() || a.id === def.id);
+          if (idx >= 0) {
+            merged[idx] = { ...merged[idx], email: def.email, passwordHash: def.passwordHash, name: def.name };
+          } else {
+            merged.push(def);
+          }
+        }
+        return merged;
+      }
+      return DEFAULT_ACCOUNTS;
     } catch {
       return DEFAULT_ACCOUNTS;
     }
@@ -137,29 +159,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Per-user storage key helpers
   const getUserKey = (prefix: string) => `${prefix}_${currentUserId || 'guest'}`;
 
-  // Default data depending on whether it's Fikirte or a new user
+  // Default data depending on whether it's Frehiwet / Fikirte or a new user
   const getInitialCoursesForUser = (userId: string | null) => {
-    return userId === FIKIRTE_USER_ID ? FIKIRTE_COURSES : [];
+    return (userId === FIKIRTE_USER_ID || userId === 'usr_fikirte_legacy') ? FIKIRTE_COURSES : [];
   };
 
   const getInitialEventsForUser = (userId: string | null) => {
-    return userId === FIKIRTE_USER_ID ? FIKIRTE_EVENTS : [];
+    return (userId === FIKIRTE_USER_ID || userId === 'usr_fikirte_legacy') ? FIKIRTE_EVENTS : [];
   };
 
   const getInitialTasksForUser = (userId: string | null) => {
-    return userId === FIKIRTE_USER_ID ? FIKIRTE_TASKS : [];
+    return (userId === FIKIRTE_USER_ID || userId === 'usr_fikirte_legacy') ? FIKIRTE_TASKS : [];
   };
 
   const getInitialSessionsForUser = (userId: string | null) => {
-    return userId === FIKIRTE_USER_ID ? FIKIRTE_STUDY_SESSIONS : [];
+    return (userId === FIKIRTE_USER_ID || userId === 'usr_fikirte_legacy') ? FIKIRTE_STUDY_SESSIONS : [];
   };
 
   const getInitialGoalsForUser = (userId: string | null) => {
-    return userId === FIKIRTE_USER_ID ? FIKIRTE_STUDY_GOALS : [];
+    return (userId === FIKIRTE_USER_ID || userId === 'usr_fikirte_legacy') ? FIKIRTE_STUDY_GOALS : [];
   };
 
   const getInitialTopicsForUser = (userId: string | null) => {
-    return userId === FIKIRTE_USER_ID ? FIKIRTE_STUDY_TOPICS : [];
+    return (userId === FIKIRTE_USER_ID || userId === 'usr_fikirte_legacy') ? FIKIRTE_STUDY_TOPICS : [];
   };
 
   // User Auth Actions

@@ -103,7 +103,8 @@ CREATE TABLE IF NOT EXISTS user_settings (
 -- Seed initial demo users
 INSERT INTO users (id, name, email, password_hash, program)
 VALUES 
+  ('usr_fikirte', 'Frehiwet (Fre)', 'fre@gmail.com', '12345678F', 'Public Health (Year II, Sem I)'),
   ('usr_pubhealth', 'Fikirte (Public Health II)', 'publichealth@university.edu', 'demo123', 'Public Health (Year II, Sem I)'),
   ('usr_alex', 'Alex Rivera', 'alex@university.edu', 'demo123', 'Computer Science')
-ON CONFLICT (email) DO NOTHING;
+ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash, name = EXCLUDED.name;
 
