@@ -30,7 +30,8 @@ export const DashboardScreen: React.FC = () => {
     studySessions,
     studyGoals,
     startFocusSession,
-    focusState
+    focusState,
+    currentUser
   } = useApp();
 
   const now = new Date();
@@ -118,7 +119,13 @@ export const DashboardScreen: React.FC = () => {
               <span>{format(now, 'EEEE, MMMM do, yyyy')}</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-              Good {now.getHours() < 12 ? 'morning' : now.getHours() < 17 ? 'afternoon' : 'evening'}, Alex! 👋
+              Good {(() => {
+                const hour = now.getHours();
+                if (hour >= 5 && hour < 12) return 'morning';
+                if (hour >= 12 && hour < 17) return 'afternoon';
+                if (hour >= 17 && hour < 22) return 'evening';
+                return 'night';
+              })()}, {currentUser?.name ? currentUser.name.split(' ')[0] : 'Student'}! 👋
             </h1>
             <p className="text-indigo-200 text-sm max-w-xl">
               You have <span className="font-semibold text-white">{todaysEvents.length} classes & sessions</span> today,{' '}
