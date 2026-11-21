@@ -39,7 +39,7 @@ interface AppContextType {
   currentUser: UserAccount | null;
   login: (email: string, passwordHash: string) => { success: boolean; message: string };
   register: (name: string, email: string, passwordHash: string, program?: string) => { success: boolean; message: string };
-  updateProfile: (updates: { name?: string; program?: string; avatarUrl?: string; password?: string }) => void;
+  updateProfile: (updates: { name?: string; email?: string; program?: string; avatarUrl?: string; password?: string }) => { success: boolean; message: string };
   logout: () => void;
 
   currentScreen: ActiveScreen;
@@ -195,22 +195,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { success: true, message: 'Account created successfully! Please sign in.' };
   };
 
-  const updateProfile = (updates: { name?: string; program?: string; avatarUrl?: string; password?: string }) => {
-    if (!currentUserId) return;
+  const updateProfile = (updates: { name?: string; email?: string; program?: string; avatarUrl?: string; password?: string }) => {
+    if (!currentUserId) return { success: false, message: 'No user logged in.' };
+
+    if (updates.email) {
+      const emailTrimmed = updates.email.trim().toLowerCase();
+      const conflict = accounts.find((a) => a.id !== currentUserId && a.email.toLowerCase() === emailTrimmed);
+      if (conflict) {
+        return { success: false, message: 'This email is already in use by another account.' };
+      }
+    }
+
     setAccounts((prev) =>
       prev.map((acc) => {
         if (acc.id === currentUserId) {
           return {
             ...acc,
-            name: updates.name ?? acc.name,
-            program: updates.program ?? acc.program,
-            avatarUrl: updates.avatarUrl ?? acc.avatarUrl,
+            name: updates.name !== undefined ? updates.name : acc.name,
+            email: updates.email !== undefined && updates.email.trim() ? updates.email.trim() : acc.email,
+            program: updates.program !== undefined ? updates.program : acc.program,
+            avatarUrl: updates.avatarUrl !== undefined ? updates.avatarUrl : acc.avatarUrl,
             passwordHash: updates.password ? updates.password : acc.passwordHash,
           };
         }
         return acc;
       })
     );
+    return { success: true, message: 'Profile updated successfully.' };
   };
 
   const logout = () => {

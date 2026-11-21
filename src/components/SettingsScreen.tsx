@@ -31,10 +31,12 @@ export const SettingsScreen: React.FC = () => {
 
   // Profile edit states
   const [profileName, setProfileName] = useState(currentUser?.name || '');
+  const [profileEmail, setProfileEmail] = useState(currentUser?.email || '');
   const [profileProgram, setProfileProgram] = useState(currentUser?.program || '');
   const [profileAvatarUrl, setProfileAvatarUrl] = useState(currentUser?.avatarUrl || '');
   const [newPassword, setNewPassword] = useState('');
   const [profileSaved, setProfileSaved] = useState(false);
+  const [profileError, setProfileError] = useState('');
 
   const [notificationStatus, setNotificationStatus] = useState<string>('');
   const [importStatus, setImportStatus] = useState<{ success: boolean; msg: string } | null>(null);
@@ -51,12 +53,27 @@ export const SettingsScreen: React.FC = () => {
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
-    updateProfile({
+    setProfileError('');
+    setProfileSaved(false);
+
+    if (!profileEmail.trim()) {
+      setProfileError('Email address cannot be empty.');
+      return;
+    }
+
+    const res = updateProfile({
       name: profileName.trim(),
+      email: profileEmail.trim(),
       program: profileProgram.trim(),
       avatarUrl: profileAvatarUrl.trim() || undefined,
       password: newPassword.trim() ? newPassword.trim() : undefined,
     });
+
+    if (!res.success) {
+      setProfileError(res.message);
+      return;
+    }
+
     setNewPassword('');
     setProfileSaved(true);
     setTimeout(() => setProfileSaved(false), 3000);
@@ -158,6 +175,13 @@ export const SettingsScreen: React.FC = () => {
           </div>
         )}
 
+        {profileError && (
+          <div className="p-3 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 text-xs rounded-2xl flex items-center gap-2 border border-red-200 dark:border-red-900/50">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{profileError}</span>
+          </div>
+        )}
+
         <form onSubmit={handleSaveProfile} className="space-y-5">
           {/* Avatar Upload */}
           <div className="flex items-center gap-5">
@@ -205,6 +229,21 @@ export const SettingsScreen: React.FC = () => {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                Email / Username (Used for login)
+              </label>
+              <input
+                type="email"
+                required
+                value={profileEmail}
+                onChange={(e) => setProfileEmail(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white text-xs font-semibold"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 Department / Academic Program
               </label>
               <input
@@ -214,21 +253,21 @@ export const SettingsScreen: React.FC = () => {
                 className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white text-xs font-semibold"
               />
             </div>
-          </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              Change Password (Leave blank to keep current)
-            </label>
-            <div className="relative max-w-md">
-              <Lock className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
-              <input
-                type="password"
-                placeholder="Enter new password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full pl-10 pr-3.5 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white text-xs"
-              />
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                Change Password (Leave blank to keep current)
+              </label>
+              <div className="relative">
+                <Lock className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
+                <input
+                  type="password"
+                  placeholder="Enter new password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full pl-10 pr-3.5 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white text-xs"
+                />
+              </div>
             </div>
           </div>
 
