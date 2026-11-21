@@ -32,6 +32,7 @@ export const PlanMyWeekModal: React.FC<PlanMyWeekModalProps> = ({ isOpen, onClos
   const { 
     courses, 
     events, 
+    tasks,
     studyGoals, 
     studyTopics, 
     settings, 
@@ -83,6 +84,46 @@ export const PlanMyWeekModal: React.FC<PlanMyWeekModalProps> = ({ isOpen, onClos
 
     let sessionCounter = 0;
 
+    // 1. First, automatically allocate dedicated blocks for pending tasks (assignments, group work, projects)
+    const pendingTasks = tasks.filter((t) => t.status !== 'completed');
+    pendingTasks.forEach((t) => {
+      const taskCourseId = t.courseId || selectedCourseIds[0] || (courses[0]?.id ?? '');
+      if (!taskCourseId) return;
+
+      for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+        const dayDate = addDays(monday, dayOffset);
+        const dayOfWeek = dayDate.getDay();
+        if (!settings.availableDays.includes(dayOfWeek)) continue;
+        const dateStr = format(dayDate, 'yyyy-MM-dd');
+
+        for (const slot of candidateSlots) {
+          const conflict = checkScheduleConflict(dateStr, slot.start, slot.end);
+          const alreadyPlanned = suggestions.some((s) => s.date === dateStr && s.startTime === slot.start);
+          if (!conflict.hasConflict && !alreadyPlanned) {
+            sessionCounter++;
+            let type: StudyType = 'assignment';
+            if (t.type === 'project') type = 'group-work';
+            else if (t.type === 'revision' || t.type === 'exam-prep') type = 'exam-prep';
+
+            suggestions.push({
+              id: 'sug_task_' + sessionCounter + '_' + Date.now(),
+              courseId: taskCourseId,
+              topic: `${t.title} (${t.type.toUpperCase()})`,
+              studyType: type,
+              date: dateStr,
+              startTime: slot.start,
+              endTime: slot.end,
+              durationMinutes: Math.min(t.estimatedMinutes || 90, 90),
+              goal: `Complete task deliverables for: ${t.title}`,
+              selected: true,
+            });
+            return;
+          }
+        }
+      }
+    });
+
+    // 2. Schedule course learning, revision, and group study sessions
     selectedCourseIds.forEach((courseId) => {
       const course = courses.find((c: Course) => c.id === courseId);
       if (!course) return;
@@ -105,23 +146,28 @@ export const PlanMyWeekModal: React.FC<PlanMyWeekModalProps> = ({ isOpen, onClos
           if (allocatedMins >= targetMins) break;
 
           const conflict = checkScheduleConflict(dateStr, slot.start, slot.end);
-          if (!conflict.hasConflict) {
+          const alreadyPlanned = suggestions.some((s) => s.date === dateStr && s.startTime === slot.start);
+          if (!conflict.hasConflict && !alreadyPlanned) {
             const topicObj = topics[sessionCounter % Math.max(topics.length, 1)];
             const topicTitle = topicObj ? topicObj.title : `Core Concepts & Practice`;
 
             sessionCounter++;
             allocatedMins += slot.duration;
 
+            // Varied study types: learning, revision, practice, group-work
+            const studyTypesArr: StudyType[] = ['learning', 'revision', 'practice', 'group-work'];
+            const assignedType = studyTypesArr[sessionCounter % studyTypesArr.length];
+
             suggestions.push({
               id: 'sug_' + sessionCounter + '_' + Date.now(),
               courseId,
               topic: topicTitle,
-              studyType: 'learning',
+              studyType: assignedType,
               date: dateStr,
               startTime: slot.start,
               endTime: slot.end,
               durationMinutes: slot.duration,
-              goal: `Focus on mastering ${topicTitle} and solving practice questions`,
+              goal: `Focus on mastering ${topicTitle} (${assignedType}) and solving practice questions`,
               selected: true,
             });
             break;

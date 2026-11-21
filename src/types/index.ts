@@ -70,6 +70,7 @@ export type StudyType =
   | 'practice' 
   | 'assignment' 
   | 'exam-prep' 
+  | 'group-work'
   | 'catch-up';
 
 export type StudySessionStatus = 

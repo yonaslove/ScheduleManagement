@@ -464,6 +464,7 @@ export const WeeklyPlanTab: React.FC = () => {
                     <option value="revision">Revision</option>
                     <option value="practice">Practice</option>
                     <option value="assignment">Assignment</option>
+                    <option value="group-work">Group Work</option>
                     <option value="exam-prep">Exam Preparation</option>
                     <option value="catch-up">Catch-up</option>
                   </select>
