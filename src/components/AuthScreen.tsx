@@ -25,7 +25,7 @@ export const AuthScreen: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
@@ -35,7 +35,7 @@ export const AuthScreen: React.FC = () => {
         setErrorMsg('Please enter both email and password.');
         return;
       }
-      const res = login(email.trim(), password.trim());
+      const res = await login(email.trim(), password.trim());
       if (!res.success) {
         setErrorMsg(res.message);
       }
@@ -48,7 +48,7 @@ export const AuthScreen: React.FC = () => {
         setErrorMsg('Password should be at least 4 characters.');
         return;
       }
-      const res = register(name.trim(), email.trim(), password.trim(), program);
+      const res = await register(name.trim(), email.trim(), password.trim(), program);
       if (!res.success) {
         setErrorMsg(res.message);
       } else {

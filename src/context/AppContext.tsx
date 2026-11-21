@@ -12,41 +12,17 @@ import {
   PlannerSubSection,
   UserAccount
 } from '../types';
-import { 
-  FIKIRTE_USER_ID,
-  FIKIRTE_COURSES,
-  FIKIRTE_EVENTS,
-  FIKIRTE_TASKS,
-  FIKIRTE_STUDY_SESSIONS,
-  FIKIRTE_STUDY_GOALS,
-  FIKIRTE_STUDY_TOPICS,
-  DEFAULT_SETTINGS
-} from '../data/initialData';
+import { DEFAULT_SETTINGS } from '../data/initialData';
 
-// Pre-configured accounts: Frehiwet / Fikirte (Public Health)
-const DEFAULT_ACCOUNTS: UserAccount[] = [
-  {
-    id: FIKIRTE_USER_ID,
-    name: 'Frehiwet (Fre)',
-    email: 'fre@gmail.com',
-    passwordHash: '12345678F',
-    program: 'Public Health (Year II, Sem I)',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'usr_fikirte_legacy',
-    name: 'Frehiwet (Fre)',
-    email: 'fikirte@university.edu',
-    passwordHash: 'demo123',
-    program: 'Public Health (Year II, Sem I)',
-    createdAt: new Date().toISOString(),
-  },
-];
+// Dynamic API backend URL (configured via VITE_API_URL or defaults to port 5000)
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-interface AppContextType {
+const DEFAULT_ACCOUNTS: UserAccount[] = [];
+
+  interface AppContextType {
   currentUser: UserAccount | null;
-  login: (email: string, passwordHash: string) => { success: boolean; message: string };
-  register: (name: string, email: string, passwordHash: string, program?: string) => { success: boolean; message: string };
+  login: (email: string, passwordHash: string) => Promise<{ success: boolean; message: string }>;
+  register: (name: string, email: string, passwordHash: string, program?: string) => Promise<{ success: boolean; message: string }>;
   updateProfile: (updates: { name?: string; email?: string; program?: string; avatarUrl?: string; password?: string }) => { success: boolean; message: string };
   logout: () => void;
 
@@ -159,34 +135,91 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Per-user storage key helpers
   const getUserKey = (prefix: string) => `${prefix}_${currentUserId || 'guest'}`;
 
-  // Default data depending on whether it's Frehiwet / Fikirte or a new user
-  const getInitialCoursesForUser = (userId: string | null) => {
-    return (userId === FIKIRTE_USER_ID || userId === 'usr_fikirte_legacy') ? FIKIRTE_COURSES : [];
-  };
-
-  const getInitialEventsForUser = (userId: string | null) => {
-    return (userId === FIKIRTE_USER_ID || userId === 'usr_fikirte_legacy') ? FIKIRTE_EVENTS : [];
-  };
-
-  const getInitialTasksForUser = (userId: string | null) => {
-    return (userId === FIKIRTE_USER_ID || userId === 'usr_fikirte_legacy') ? FIKIRTE_TASKS : [];
-  };
-
-  const getInitialSessionsForUser = (userId: string | null) => {
-    return (userId === FIKIRTE_USER_ID || userId === 'usr_fikirte_legacy') ? FIKIRTE_STUDY_SESSIONS : [];
-  };
-
-  const getInitialGoalsForUser = (userId: string | null) => {
-    return (userId === FIKIRTE_USER_ID || userId === 'usr_fikirte_legacy') ? FIKIRTE_STUDY_GOALS : [];
-  };
-
-  const getInitialTopicsForUser = (userId: string | null) => {
-    return (userId === FIKIRTE_USER_ID || userId === 'usr_fikirte_legacy') ? FIKIRTE_STUDY_TOPICS : [];
-  };
-
   // User Auth Actions
-  const login = (email: string, passwordHash: string) => {
-    const acc = accounts.find((a) => a.email.toLowerCase() === email.toLowerCase());
+  const login = async (email: string, passwordHash: string) => {
+    const emailTrimmed = email.trim();
+    // 1. Authenticate with PostgreSQL Backend
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailTrimmed, password: passwordHash }),
+      });
+      const data = await res.json();
+      if (data.success && data.user) {
+        const dbUser: UserAccount = {
+          id: data.user.id,
+          name: data.user.name,
+          email: data.user.email,
+          passwordHash: passwordHash,
+          program: data.user.program || 'Public Health',
+          createdAt: new Date().toISOString(),
+        };
+
+        // Cache user in accounts
+        setAccounts((prev) => {
+          const filtered = prev.filter((a) => a.id !== dbUser.id && a.email.toLowerCase() !== dbUser.email.toLowerCase());
+          return [...filtered, dbUser];
+        });
+
+        // Load user's data from PostgreSQL database
+        try {
+          const loadRes = await fetch(`${API_BASE_URL}/api/sync/load/${dbUser.id}`);
+          const loadData = await loadRes.json();
+          if (loadData.success) {
+            if (Array.isArray(loadData.courses)) {
+              setCourses(loadData.courses);
+              localStorage.setItem(`${getUserKey('sched_courses')}`, JSON.stringify(loadData.courses));
+            }
+            if (Array.isArray(loadData.events)) {
+              const formattedEvents = loadData.events.map((ev: any) => ({
+                id: ev.id,
+                title: ev.title,
+                type: ev.type,
+                courseId: ev.course_id,
+                date: typeof ev.date === 'string' ? ev.date.split('T')[0] : ev.date,
+                startTime: ev.start_time,
+                endTime: ev.end_time,
+                dayOfWeek: ev.day_of_week,
+                isRecurring: ev.is_recurring,
+                location: ev.location,
+                notes: ev.notes,
+              }));
+              setEvents(formattedEvents);
+              localStorage.setItem(`${getUserKey('sched_events')}`, JSON.stringify(formattedEvents));
+            }
+            if (Array.isArray(loadData.tasks)) {
+              const formattedTasks = loadData.tasks.map((t: any) => ({
+                id: t.id,
+                title: t.title,
+                courseId: t.course_id,
+                type: t.type,
+                dueAt: t.due_at,
+                priority: t.priority,
+                estimatedMinutes: t.estimated_minutes,
+                status: t.status,
+                notes: t.notes,
+              }));
+              setTasks(formattedTasks);
+              localStorage.setItem(`${getUserKey('sched_tasks')}`, JSON.stringify(formattedTasks));
+            }
+          }
+        } catch (loadErr) {
+          console.warn('Could not sync data from remote DB, using local cache', loadErr);
+        }
+
+        setCurrentUserId(dbUser.id);
+        setCurrentScreen('dashboard');
+        return { success: true, message: 'Logged in successfully.' };
+      } else if (data.message) {
+        return { success: false, message: data.message };
+      }
+    } catch {
+      console.warn('Backend API unreachable, checking local accounts');
+    }
+
+    // 2. Fallback to Local Accounts (if offline)
+    const acc = accounts.find((a) => a.email.toLowerCase() === emailTrimmed.toLowerCase());
     if (!acc) {
       return { success: false, message: 'No account registered with this email.' };
     }
@@ -198,22 +231,48 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { success: true, message: 'Logged in successfully.' };
   };
 
-  const register = (name: string, email: string, passwordHash: string, program = 'General') => {
-    const existing = accounts.find((a) => a.email.toLowerCase() === email.toLowerCase());
+  const register = async (name: string, email: string, passwordHash: string, program = 'General') => {
+    const emailTrimmed = email.trim();
+    // 1. Try PostgreSQL Backend
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim(), email: emailTrimmed, password: passwordHash, program }),
+      });
+      const data = await res.json();
+      if (data.success && data.user) {
+        const newAcc: UserAccount = {
+          id: data.user.id,
+          name: data.user.name,
+          email: data.user.email,
+          passwordHash: passwordHash,
+          program: data.user.program,
+          createdAt: new Date().toISOString(),
+        };
+        setAccounts((prev) => [...prev.filter((a) => a.id !== newAcc.id), newAcc]);
+        return { success: true, message: 'Account created successfully! Please sign in.' };
+      } else if (data.message) {
+        return { success: false, message: data.message };
+      }
+    } catch {
+      console.warn('Backend API unreachable, creating in local storage');
+    }
+
+    // 2. Fallback to Local Storage
+    const existing = accounts.find((a) => a.email.toLowerCase() === emailTrimmed.toLowerCase());
     if (existing) {
       return { success: false, message: 'An account with this email already exists.' };
     }
     const newAcc: UserAccount = {
       id: 'usr_' + Date.now() + Math.random().toString(36).substring(2, 6),
-      name,
-      email,
+      name: name.trim(),
+      email: emailTrimmed,
       passwordHash,
       program,
       createdAt: new Date().toISOString(),
     };
     setAccounts((prev) => [...prev, newAcc]);
-    // Do NOT auto-login or redirect to dashboard immediately.
-    // The user will be redirected to the login form to enter their credentials.
     return { success: true, message: 'Account created successfully! Please sign in.' };
   };
 
@@ -256,14 +315,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [selectedCourseForDetails, setSelectedCourseForDetails] = useState<string | null>(null);
 
-  // Per-user isolated states
+  // Per-user isolated states (Starts clean [] unless loaded from PostgreSQL / localStorage)
   const [courses, setCourses] = useState<Course[]>(() => {
     try {
       const key = getUserKey('sched_courses');
       const saved = localStorage.getItem(key);
-      return saved ? JSON.parse(saved) : getInitialCoursesForUser(currentUserId);
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return getInitialCoursesForUser(currentUserId);
+      return [];
     }
   });
 
@@ -271,9 +330,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const key = getUserKey('sched_events');
       const saved = localStorage.getItem(key);
-      return saved ? JSON.parse(saved) : getInitialEventsForUser(currentUserId);
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return getInitialEventsForUser(currentUserId);
+      return [];
     }
   });
 
@@ -281,9 +340,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const key = getUserKey('sched_tasks');
       const saved = localStorage.getItem(key);
-      return saved ? JSON.parse(saved) : getInitialTasksForUser(currentUserId);
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return getInitialTasksForUser(currentUserId);
+      return [];
     }
   });
 
@@ -301,9 +360,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const key = getUserKey('sched_sessions');
       const saved = localStorage.getItem(key);
-      return saved ? JSON.parse(saved) : getInitialSessionsForUser(currentUserId);
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return getInitialSessionsForUser(currentUserId);
+      return [];
     }
   });
 
@@ -311,9 +370,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const key = getUserKey('sched_goals');
       const saved = localStorage.getItem(key);
-      return saved ? JSON.parse(saved) : getInitialGoalsForUser(currentUserId);
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return getInitialGoalsForUser(currentUserId);
+      return [];
     }
   });
 
@@ -321,9 +380,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const key = getUserKey('sched_topics');
       const saved = localStorage.getItem(key);
-      return saved ? JSON.parse(saved) : getInitialTopicsForUser(currentUserId);
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return getInitialTopicsForUser(currentUserId);
+      return [];
     }
   });
 
@@ -344,22 +403,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!currentUserId) return;
     try {
       const savedCourses = localStorage.getItem(getUserKey('sched_courses'));
-      setCourses(savedCourses ? JSON.parse(savedCourses) : getInitialCoursesForUser(currentUserId));
+      setCourses(savedCourses ? JSON.parse(savedCourses) : []);
 
       const savedEvents = localStorage.getItem(getUserKey('sched_events'));
-      setEvents(savedEvents ? JSON.parse(savedEvents) : getInitialEventsForUser(currentUserId));
+      setEvents(savedEvents ? JSON.parse(savedEvents) : []);
 
       const savedTasks = localStorage.getItem(getUserKey('sched_tasks'));
-      setTasks(savedTasks ? JSON.parse(savedTasks) : getInitialTasksForUser(currentUserId));
+      setTasks(savedTasks ? JSON.parse(savedTasks) : []);
 
       const savedSessions = localStorage.getItem(getUserKey('sched_sessions'));
-      setStudySessions(savedSessions ? JSON.parse(savedSessions) : getInitialSessionsForUser(currentUserId));
+      setStudySessions(savedSessions ? JSON.parse(savedSessions) : []);
 
       const savedGoals = localStorage.getItem(getUserKey('sched_goals'));
-      setStudyGoals(savedGoals ? JSON.parse(savedGoals) : getInitialGoalsForUser(currentUserId));
+      setStudyGoals(savedGoals ? JSON.parse(savedGoals) : []);
 
       const savedTopics = localStorage.getItem(getUserKey('sched_topics'));
-      setStudyTopics(savedTopics ? JSON.parse(savedTopics) : getInitialTopicsForUser(currentUserId));
+      setStudyTopics(savedTopics ? JSON.parse(savedTopics) : []);
 
       const savedSettings = localStorage.getItem(getUserKey('sched_settings'));
       setSettings(savedSettings ? JSON.parse(savedSettings) : DEFAULT_SETTINGS);
