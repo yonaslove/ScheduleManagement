@@ -13,6 +13,7 @@ import { addDays, format, startOfWeek } from 'date-fns';
 interface PlanMyWeekModalProps {
   isOpen: boolean;
   onClose: () => void;
+  targetWeekStart?: Date;
 }
 
 interface SuggestedSession {
@@ -28,7 +29,7 @@ interface SuggestedSession {
   selected: boolean;
 }
 
-export const PlanMyWeekModal: React.FC<PlanMyWeekModalProps> = ({ isOpen, onClose }) => {
+export const PlanMyWeekModal: React.FC<PlanMyWeekModalProps> = ({ isOpen, onClose, targetWeekStart }) => {
   const { 
     courses, 
     events, 
@@ -69,8 +70,9 @@ export const PlanMyWeekModal: React.FC<PlanMyWeekModalProps> = ({ isOpen, onClos
   };
 
   const handleGenerateSuggestions = () => {
-    const now = new Date();
-    const monday = startOfWeek(now, { weekStartsOn: 1 });
+    const monday = targetWeekStart 
+      ? startOfWeek(targetWeekStart, { weekStartsOn: 1 })
+      : startOfWeek(new Date(), { weekStartsOn: 1 });
     const suggestions: SuggestedSession[] = [];
 
     // Candidate study time slots within student's study window

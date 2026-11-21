@@ -383,6 +383,7 @@ export const WeeklyPlanTab: React.FC = () => {
       <PlanMyWeekModal
         isOpen={planMyWeekOpen}
         onClose={() => setPlanMyWeekOpen(false)}
+        targetWeekStart={currentDate}
       />
 
       {/* Missed Session Recovery Modal */}
