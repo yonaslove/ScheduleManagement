@@ -10,9 +10,11 @@ import {
   Upload, 
   RotateCcw, 
   Check, 
-  AlertCircle 
+  AlertCircle,
+  Globe
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { translations, Language } from '../locales/translations';
 
 export const SettingsScreen: React.FC = () => {
   const { 
@@ -23,8 +25,17 @@ export const SettingsScreen: React.FC = () => {
     resetToDefaults 
   } = useApp();
 
+  const currentLang = (settings.language || 'en') as Language;
+  const t = translations[currentLang] || translations.en;
+
   const [notificationStatus, setNotificationStatus] = useState<string>('');
   const [importStatus, setImportStatus] = useState<{ success: boolean; msg: string } | null>(null);
+
+  const languages = [
+    { code: 'en', name: 'English', native: 'English' },
+    { code: 'am', name: 'Amharic', native: 'አማርኛ' },
+    { code: 'om', name: 'Afaan Oromoo', native: 'Afaan Oromoo' },
+  ];
 
   const daysOfWeek = [
     { label: 'Sun', value: 0 },
@@ -95,33 +106,66 @@ export const SettingsScreen: React.FC = () => {
   return (
     <div className="space-y-6 animate-fadeIn max-w-4xl pb-12">
       {/* Top Banner */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm">
         <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
           <SettingsIcon className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-          <span>Application Settings & Preferences</span>
+          <span>{t.settingsTitle}</span>
         </h2>
         <p className="text-xs text-slate-400 mt-0.5">
-          Configure study availability windows, themes, notification triggers, and data backup.
+          {t.settingsSubtitle}
         </p>
       </div>
 
-      {/* 1. Study Hours & Availability */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-5">
+      {/* 1. Language Preference */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
         <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
-          <Clock className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+          <Globe className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           <h3 className="text-base font-bold text-slate-800 dark:text-white">
-            Daily Study Window
+            {t.languagePreference}
           </h3>
         </div>
 
         <p className="text-xs text-slate-500 dark:text-slate-400">
-          Set your preferred daily focus hours. Timetable study blocks and task estimates will align within this window.
+          {t.languageSubtitle}
         </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl pt-1">
+          {languages.map((lang) => {
+            const isSelected = (settings.language || 'en') === lang.code;
+            return (
+              <button
+                key={lang.code}
+                onClick={() => updateSettings({ language: lang.code as any })}
+                className={`p-3.5 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between ${
+                  isSelected
+                    ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                    : 'border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
+                }`}
+              >
+                <span className="text-sm font-bold block">{lang.native}</span>
+                <span className="text-xs text-slate-400 mt-1">{lang.name}</span>
+                {isSelected && (
+                  <Check className="w-4 h-4 text-indigo-600 dark:text-indigo-400 self-end mt-2" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 2. Study Hours & Availability */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-5">
+        <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+          <Clock className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+          <h3 className="text-base font-bold text-slate-800 dark:text-white">
+            {t.studyWindow}
+          </h3>
+        </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              Study Start Time
+              {t.studyStart}
             </label>
             <input
               type="time"
@@ -132,7 +176,7 @@ export const SettingsScreen: React.FC = () => {
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              Study End Time
+              {t.studyEnd}
             </label>
             <input
               type="time"
@@ -144,18 +188,14 @@ export const SettingsScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. Available Days */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+      {/* 3. Available Days */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
         <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
           <Calendar className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           <h3 className="text-base font-bold text-slate-800 dark:text-white">
-            Available Study Days
+            {t.availableDays}
           </h3>
         </div>
-
-        <p className="text-xs text-slate-500 dark:text-slate-400">
-          Choose which days of the week you plan to allocate study blocks and revision tasks.
-        </p>
 
         <div className="flex flex-wrap gap-2 pt-2">
           {daysOfWeek.map((day) => {
@@ -177,12 +217,12 @@ export const SettingsScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. Theme & Appearance */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+      {/* 4. Theme & Appearance */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
         <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
           <Sun className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           <h3 className="text-base font-bold text-slate-800 dark:text-white">
-            Theme & Appearance
+            {t.themeAppearance}
           </h3>
         </div>
 
@@ -191,31 +231,27 @@ export const SettingsScreen: React.FC = () => {
             <button
               key={thm}
               onClick={() => updateSettings({ theme: thm })}
-              className={`p-3 rounded-xl border text-center capitalize text-xs font-bold transition cursor-pointer flex flex-col items-center justify-center gap-2 ${
+              className={`p-3 rounded-2xl border text-center capitalize text-xs font-bold transition cursor-pointer flex flex-col items-center justify-center gap-2 ${
                 settings.theme === thm
                   ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400'
                   : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50'
               }`}
             >
               {thm === 'light' ? <Sun className="w-5 h-5" /> : thm === 'dark' ? <Moon className="w-5 h-5" /> : <SettingsIcon className="w-5 h-5" />}
-              <span>{thm}</span>
+              <span>{t[thm]}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* 4. Notification Preferences */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+      {/* 5. Notification Preferences */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
         <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
           <Bell className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           <h3 className="text-base font-bold text-slate-800 dark:text-white">
-            Notification Preferences
+            {t.notifications}
           </h3>
         </div>
-
-        <p className="text-xs text-slate-500 dark:text-slate-400">
-          Receive browser notifications for upcoming class start times and imminent assignment deadlines.
-        </p>
 
         <div className="flex items-center justify-between pt-2">
           <div>
@@ -223,7 +259,7 @@ export const SettingsScreen: React.FC = () => {
               Browser Alerts
             </p>
             <p className="text-[11px] text-slate-400">
-              {settings.notificationsEnabled ? 'Notifications are active' : 'Notifications are disabled'}
+              {settings.notificationsEnabled ? 'Active' : 'Disabled'}
             </p>
           </div>
 
@@ -235,7 +271,7 @@ export const SettingsScreen: React.FC = () => {
                 : 'bg-indigo-600 text-white hover:bg-indigo-700'
             }`}
           >
-            {settings.notificationsEnabled ? 'Active (Test Alert)' : 'Enable Notifications'}
+            {settings.notificationsEnabled ? 'Active' : t.enableNotifications}
           </button>
         </div>
 
@@ -246,18 +282,14 @@ export const SettingsScreen: React.FC = () => {
         )}
       </div>
 
-      {/* 5. Data Backup & Restore */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+      {/* 6. Data Backup & Restore */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
         <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
           <Download className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           <h3 className="text-base font-bold text-slate-800 dark:text-white">
-            Data Backup & Restore
+            {t.dataBackup}
           </h3>
         </div>
-
-        <p className="text-xs text-slate-500 dark:text-slate-400">
-          Export your schedule, courses, and tasks to an offline JSON backup, or restore from a previously exported file.
-        </p>
 
         {importStatus && (
           <div
@@ -273,19 +305,17 @@ export const SettingsScreen: React.FC = () => {
         )}
 
         <div className="flex flex-wrap items-center gap-3 pt-2">
-          {/* Export button */}
           <button
             onClick={handleExport}
             className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white text-xs font-semibold rounded-xl flex items-center gap-2 cursor-pointer transition"
           >
             <Download className="w-4 h-4" />
-            <span>Export Data (JSON)</span>
+            <span>{t.exportJson}</span>
           </button>
 
-          {/* Import file input */}
           <label className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white text-xs font-semibold rounded-xl flex items-center gap-2 cursor-pointer transition">
             <Upload className="w-4 h-4" />
-            <span>Import Backup</span>
+            <span>{t.importBackup}</span>
             <input
               type="file"
               accept=".json"
@@ -294,21 +324,19 @@ export const SettingsScreen: React.FC = () => {
             />
           </label>
 
-          {/* Reset to defaults */}
           <button
             onClick={() => {
-              if (window.confirm('Reset all courses, timetable events, and tasks to default demo data?')) {
+              if (window.confirm('Reset all data to default?')) {
                 resetToDefaults();
               }
             }}
             className="px-4 py-2.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 text-xs font-semibold rounded-xl flex items-center gap-2 cursor-pointer transition ml-auto"
           >
             <RotateCcw className="w-4 h-4" />
-            <span>Reset Demo Data</span>
+            <span>{t.resetDemo}</span>
           </button>
         </div>
       </div>
     </div>
   );
 };
-
