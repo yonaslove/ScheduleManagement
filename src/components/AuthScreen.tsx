@@ -57,12 +57,6 @@ export const AuthScreen: React.FC = () => {
     }
   };
 
-  const handleQuickDemoLogin = (demoEmail: string) => {
-    setEmail(demoEmail);
-    setPassword('demo123');
-    login(demoEmail, 'demo123');
-  };
-
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col justify-center items-center p-4 selection:bg-indigo-500 selection:text-white">
       {/* Brand Header */}
@@ -210,37 +204,6 @@ export const AuthScreen: React.FC = () => {
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
-
-        {/* Demo Fast Logins Section */}
-        <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800">
-          <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider text-center mb-3">
-            Quick One-Click Demo Access
-          </p>
-
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => handleQuickDemoLogin('publichealth@university.edu')}
-              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition cursor-pointer"
-            >
-              <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200 block truncate">
-                🏥 Public Health Demo
-              </span>
-              <span className="text-[10px] text-slate-400 truncate block">2nd Year Schedule</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleQuickDemoLogin('alex@university.edu')}
-              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition cursor-pointer"
-            >
-              <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200 block truncate">
-                💻 Alex (CS Student)
-              </span>
-              <span className="text-[10px] text-slate-400 truncate block">Algorithms & Systems</span>
-            </button>
-          </div>
-        </div>
       </div>
 
       {/* Footer Info */}
