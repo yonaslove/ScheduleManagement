@@ -1,6 +1,7 @@
 import React from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Sidebar } from './components/Sidebar';
+import { MobileHeader } from './components/MobileHeader';
 import { DashboardScreen } from './components/DashboardScreen';
 import { CalendarScreen } from './components/CalendarScreen';
 import { TasksScreen } from './components/TasksScreen';
@@ -20,7 +21,10 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col md:flex-row text-slate-800 dark:text-slate-100">
-      {/* Sidebar for desktop & bottom navigation on mobile */}
+      {/* Mobile Top Header with Sidebar Hamburger Toggle Button */}
+      <MobileHeader />
+
+      {/* Sidebar (Desktop static sidebar + Mobile slide-out drawer) */}
       <Sidebar />
 
       {/* Main Screen Content Area */}

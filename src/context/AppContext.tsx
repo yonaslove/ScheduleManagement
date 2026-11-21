@@ -106,6 +106,8 @@ interface AppContextType {
   resetToDefaults: () => void;
   quickAddOpen: boolean;
   setQuickAddOpen: (open: boolean) => void;
+  mobileSidebarOpen: boolean;
+  setMobileSidebarOpen: (open: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -254,6 +256,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [currentScreen, setCurrentScreen] = useState<ActiveScreen>('dashboard');
   const [plannerSubSection, setPlannerSubSection] = useState<PlannerSubSection>('weekly-plan');
   const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [selectedCourseForDetails, setSelectedCourseForDetails] = useState<string | null>(null);
 
   // Per-user isolated states
@@ -815,6 +818,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setQuickAddOpen,
         selectedCourseForDetails,
         setSelectedCourseForDetails,
+        mobileSidebarOpen,
+        setMobileSidebarOpen,
       }}
     >
       {children}
