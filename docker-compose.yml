@@ -2,12 +2,11 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: schedule_postgres
-    restart: unless-stopped
+    restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password123
-      POSTGRES_DB: schedule_management
-      DOCKER_API_VERSION: "1.45"
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password123}
+      POSTGRES_DB: ${POSTGRES_DB:-schedule_management}
     ports:
       - "5434:5432"
     volumes:
@@ -15,11 +14,40 @@ services:
       - ./server/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d schedule_management"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 5
+
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: schedule_backend
+    restart: always
+    environment:
+      PORT: 5000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-password123}
+      DB_NAME: ${POSTGRES_DB:-schedule_management}
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: schedule_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
 
 volumes:
   pgdata:
     driver: local
-
