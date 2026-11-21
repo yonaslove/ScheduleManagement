@@ -14,9 +14,11 @@ import {
   User,
   Lock,
   Camera,
-  Save
+  Save,
+  FileSpreadsheet
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { exportScheduleToExcel } from '../utils/excelExport';
 
 export const SettingsScreen: React.FC = () => {
   const { 
@@ -26,7 +28,11 @@ export const SettingsScreen: React.FC = () => {
     importData, 
     resetToDefaults,
     currentUser,
-    updateProfile 
+    updateProfile,
+    events,
+    courses,
+    tasks,
+    studySessions
   } = useApp();
 
   // Profile edit states
@@ -127,6 +133,10 @@ export const SettingsScreen: React.FC = () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const handleExportExcel = () => {
+    exportScheduleToExcel(events, courses, tasks, studySessions, currentUser?.name || 'Student');
   };
 
   const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -440,11 +450,19 @@ export const SettingsScreen: React.FC = () => {
 
         <div className="flex flex-wrap items-center gap-3 pt-2">
           <button
+            onClick={handleExportExcel}
+            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl flex items-center gap-2 cursor-pointer transition shadow-xs"
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            <span>Export Full Schedule (Excel / Table)</span>
+          </button>
+
+          <button
             onClick={handleExport}
             className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-white text-xs font-semibold rounded-xl flex items-center gap-2 cursor-pointer transition"
           >
             <Download className="w-4 h-4" />
-            <span>Export My Data (JSON)</span>
+            <span>Export JSON</span>
           </button>
 
           <label className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-white text-xs font-semibold rounded-xl flex items-center gap-2 cursor-pointer transition">

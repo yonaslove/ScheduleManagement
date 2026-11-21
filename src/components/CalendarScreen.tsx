@@ -6,10 +6,12 @@ import {
   Plus, 
   MapPin, 
   Eye, 
-  EyeOff 
+  EyeOff,
+  FileSpreadsheet
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { ScheduleEvent } from '../types';
+import { exportScheduleToExcel } from '../utils/excelExport';
 import { 
   format, 
   addDays, 
@@ -23,7 +25,7 @@ import {
 } from 'date-fns';
 
 export const CalendarScreen: React.FC = () => {
-  const { events, courses, setQuickAddOpen, deleteEvent, startFocusSession } = useApp();
+  const { events, courses, tasks, studySessions, currentUser, setQuickAddOpen, deleteEvent, startFocusSession } = useApp();
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<'day' | 'week' | 'month'>('week');
@@ -195,6 +197,15 @@ export const CalendarScreen: React.FC = () => {
               </button>
             ))}
           </div>
+
+          <button
+            onClick={() => exportScheduleToExcel(events, courses, tasks, studySessions, currentUser?.name || 'Student')}
+            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold shadow-xs flex items-center gap-1.5 cursor-pointer transition active:scale-95"
+            title="Download Excel Spreadsheet of Timetable, Exams & Tasks"
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            <span className="hidden sm:inline">Export Schedule</span>
+          </button>
 
           <button
             onClick={() => setQuickAddOpen(true)}
