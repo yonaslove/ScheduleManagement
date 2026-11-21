@@ -806,21 +806,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const resetToDefaults = () => {
-    if (currentUserId === FIKIRTE_USER_ID) {
-      setCourses(FIKIRTE_COURSES);
-      setEvents(FIKIRTE_EVENTS);
-      setTasks(FIKIRTE_TASKS);
-      setStudySessions(FIKIRTE_STUDY_SESSIONS);
-      setStudyGoals(FIKIRTE_STUDY_GOALS);
-      setStudyTopics(FIKIRTE_STUDY_TOPICS);
-    } else {
-      setCourses([]);
-      setEvents([]);
-      setTasks([]);
-      setStudySessions([]);
-      setStudyGoals([]);
-      setStudyTopics([]);
-    }
+    setCourses([]);
+    setEvents([]);
+    setTasks([]);
+    setStudySessions([]);
+    setStudyGoals([]);
+    setStudyTopics([]);
     setSettings(DEFAULT_SETTINGS);
   };
 
