@@ -9,6 +9,7 @@ export interface UserAccount {
   email: string;
   passwordHash: string;
   program?: string;
+  avatarUrl?: string; // profile image
   createdAt: string;
 }
 
@@ -17,7 +18,7 @@ export interface Course {
   code: string;
   title: string;
   credits: number;
-  color: string;
+  color: string; // Hex color e.g. #3b82f6
   instructor?: string;
   location?: string;
   notes?: string;
@@ -28,10 +29,10 @@ export interface ScheduleEvent {
   title: string;
   type: EventType;
   courseId?: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  dayOfWeek?: number;
+  date: string; // YYYY-MM-DD
+  startTime: string; // HH:mm (24-hr e.g. "09:00")
+  endTime: string; // HH:mm
+  dayOfWeek?: number; // 0=Sun, 1=Mon, ..., 6=Sat (for recurring classes)
   isRecurring?: boolean;
   location?: string;
   notes?: string;
@@ -43,7 +44,7 @@ export interface Task {
   title: string;
   courseId?: string;
   type: TaskType;
-  dueAt: string;
+  dueAt: string; // ISO date string or YYYY-MM-DDTHH:mm
   priority: Priority;
   estimatedMinutes?: number;
   status: TaskStatus;
@@ -51,18 +52,18 @@ export interface Task {
 }
 
 export interface UserSettings {
-  studyHoursStart: string;
-  studyHoursEnd: string;
-  availableDays: number[];
+  studyHoursStart: string; // e.g. "08:00"
+  studyHoursEnd: string; // e.g. "22:00"
+  availableDays: number[]; // e.g. [1, 2, 3, 4, 5] (Mon-Fri)
   notificationsEnabled: boolean;
   theme: 'light' | 'dark' | 'system';
-  language?: 'en' | 'am' | 'om';
   defaultFocusDuration?: number;
   defaultBreakDuration?: number;
 }
 
 export type ActiveScreen = 'dashboard' | 'calendar' | 'tasks' | 'courses' | 'planner' | 'settings';
 
+/* Study Planner specific types */
 export type StudyType = 
   | 'learning' 
   | 'revision' 
@@ -83,9 +84,9 @@ export interface StudySession {
   courseId: string;
   topic: string;
   studyType: StudyType;
-  date: string;
-  startTime: string;
-  endTime: string;
+  date: string; // YYYY-MM-DD
+  startTime: string; // HH:mm
+  endTime: string; // HH:mm
   durationMinutes: number;
   goal: string;
   status: StudySessionStatus;

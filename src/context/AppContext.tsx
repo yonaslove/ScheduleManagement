@@ -13,31 +13,24 @@ import {
   UserAccount
 } from '../types';
 import { 
-  INITIAL_COURSES, 
-  INITIAL_EVENTS, 
-  INITIAL_TASKS, 
-  INITIAL_SETTINGS,
-  INITIAL_STUDY_SESSIONS,
-  INITIAL_STUDY_GOALS,
-  INITIAL_STUDY_TOPICS
+  FIKIRTE_USER_ID,
+  FIKIRTE_COURSES,
+  FIKIRTE_EVENTS,
+  FIKIRTE_TASKS,
+  FIKIRTE_STUDY_SESSIONS,
+  FIKIRTE_STUDY_GOALS,
+  FIKIRTE_STUDY_TOPICS,
+  DEFAULT_SETTINGS
 } from '../data/initialData';
 
-// Demo initial accounts
+// Fikirte's pre-configured Public Health account
 const DEFAULT_ACCOUNTS: UserAccount[] = [
   {
-    id: 'usr_pubhealth',
-    name: 'Fikirte (Public Health II)',
-    email: 'publichealth@university.edu',
+    id: FIKIRTE_USER_ID,
+    name: 'Fikirte (Rep)',
+    email: 'fikirte@university.edu',
     passwordHash: 'demo123',
     program: 'Public Health (Year II, Sem I)',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'usr_alex',
-    name: 'Alex Rivera',
-    email: 'alex@university.edu',
-    passwordHash: 'demo123',
-    program: 'Computer Science',
     createdAt: new Date().toISOString(),
   },
 ];
@@ -46,6 +39,7 @@ interface AppContextType {
   currentUser: UserAccount | null;
   login: (email: string, passwordHash: string) => { success: boolean; message: string };
   register: (name: string, email: string, passwordHash: string, program?: string) => { success: boolean; message: string };
+  updateProfile: (updates: { name?: string; program?: string; avatarUrl?: string; password?: string }) => void;
   logout: () => void;
 
   currentScreen: ActiveScreen;
@@ -108,8 +102,8 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const GLOBAL_ACCOUNTS_KEY = 'sched_app_accounts_v1';
-const ACTIVE_USER_ID_KEY = 'sched_app_active_user_id_v1';
+const GLOBAL_ACCOUNTS_KEY = 'sched_app_accounts_v2';
+const ACTIVE_USER_ID_KEY = 'sched_app_active_user_id_v2';
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // 1. User Accounts management
@@ -123,7 +117,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(() => {
-    return localStorage.getItem(ACTIVE_USER_ID_KEY) || 'usr_pubhealth';
+    return localStorage.getItem(ACTIVE_USER_ID_KEY) || null;
   });
 
   const currentUser = accounts.find((a) => a.id === currentUserId) || null;
@@ -143,6 +137,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Per-user storage key helpers
   const getUserKey = (prefix: string) => `${prefix}_${currentUserId || 'guest'}`;
 
+  // Default data depending on whether it's Fikirte or a new user
+  const getInitialCoursesForUser = (userId: string | null) => {
+    return userId === FIKIRTE_USER_ID ? FIKIRTE_COURSES : [];
+  };
+
+  const getInitialEventsForUser = (userId: string | null) => {
+    return userId === FIKIRTE_USER_ID ? FIKIRTE_EVENTS : [];
+  };
+
+  const getInitialTasksForUser = (userId: string | null) => {
+    return userId === FIKIRTE_USER_ID ? FIKIRTE_TASKS : [];
+  };
+
+  const getInitialSessionsForUser = (userId: string | null) => {
+    return userId === FIKIRTE_USER_ID ? FIKIRTE_STUDY_SESSIONS : [];
+  };
+
+  const getInitialGoalsForUser = (userId: string | null) => {
+    return userId === FIKIRTE_USER_ID ? FIKIRTE_STUDY_GOALS : [];
+  };
+
+  const getInitialTopicsForUser = (userId: string | null) => {
+    return userId === FIKIRTE_USER_ID ? FIKIRTE_STUDY_TOPICS : [];
+  };
+
   // User Auth Actions
   const login = (email: string, passwordHash: string) => {
     const acc = accounts.find((a) => a.email.toLowerCase() === email.toLowerCase());
@@ -157,7 +176,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { success: true, message: 'Logged in successfully.' };
   };
 
-  const register = (name: string, email: string, passwordHash: string, program = 'Public Health') => {
+  const register = (name: string, email: string, passwordHash: string, program = 'General') => {
     const existing = accounts.find((a) => a.email.toLowerCase() === email.toLowerCase());
     if (existing) {
       return { success: false, message: 'An account with this email already exists.' };
@@ -176,6 +195,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { success: true, message: 'Account created successfully.' };
   };
 
+  const updateProfile = (updates: { name?: string; program?: string; avatarUrl?: string; password?: string }) => {
+    if (!currentUserId) return;
+    setAccounts((prev) =>
+      prev.map((acc) => {
+        if (acc.id === currentUserId) {
+          return {
+            ...acc,
+            name: updates.name ?? acc.name,
+            program: updates.program ?? acc.program,
+            avatarUrl: updates.avatarUrl ?? acc.avatarUrl,
+            passwordHash: updates.password ? updates.password : acc.passwordHash,
+          };
+        }
+        return acc;
+      })
+    );
+  };
+
   const logout = () => {
     setCurrentUserId(null);
   };
@@ -186,14 +223,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [selectedCourseForDetails, setSelectedCourseForDetails] = useState<string | null>(null);
 
-  // Per-user data states
+  // Per-user isolated states
   const [courses, setCourses] = useState<Course[]>(() => {
     try {
       const key = getUserKey('sched_courses');
       const saved = localStorage.getItem(key);
-      return saved ? JSON.parse(saved) : INITIAL_COURSES;
+      return saved ? JSON.parse(saved) : getInitialCoursesForUser(currentUserId);
     } catch {
-      return INITIAL_COURSES;
+      return getInitialCoursesForUser(currentUserId);
     }
   });
 
@@ -201,9 +238,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const key = getUserKey('sched_events');
       const saved = localStorage.getItem(key);
-      return saved ? JSON.parse(saved) : INITIAL_EVENTS;
+      return saved ? JSON.parse(saved) : getInitialEventsForUser(currentUserId);
     } catch {
-      return INITIAL_EVENTS;
+      return getInitialEventsForUser(currentUserId);
     }
   });
 
@@ -211,9 +248,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const key = getUserKey('sched_tasks');
       const saved = localStorage.getItem(key);
-      return saved ? JSON.parse(saved) : INITIAL_TASKS;
+      return saved ? JSON.parse(saved) : getInitialTasksForUser(currentUserId);
     } catch {
-      return INITIAL_TASKS;
+      return getInitialTasksForUser(currentUserId);
     }
   });
 
@@ -221,9 +258,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const key = getUserKey('sched_settings');
       const saved = localStorage.getItem(key);
-      return saved ? JSON.parse(saved) : INITIAL_SETTINGS;
+      return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
     } catch {
-      return INITIAL_SETTINGS;
+      return DEFAULT_SETTINGS;
     }
   });
 
@@ -231,9 +268,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const key = getUserKey('sched_sessions');
       const saved = localStorage.getItem(key);
-      return saved ? JSON.parse(saved) : INITIAL_STUDY_SESSIONS;
+      return saved ? JSON.parse(saved) : getInitialSessionsForUser(currentUserId);
     } catch {
-      return INITIAL_STUDY_SESSIONS;
+      return getInitialSessionsForUser(currentUserId);
     }
   });
 
@@ -241,9 +278,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const key = getUserKey('sched_goals');
       const saved = localStorage.getItem(key);
-      return saved ? JSON.parse(saved) : INITIAL_STUDY_GOALS;
+      return saved ? JSON.parse(saved) : getInitialGoalsForUser(currentUserId);
     } catch {
-      return INITIAL_STUDY_GOALS;
+      return getInitialGoalsForUser(currentUserId);
     }
   });
 
@@ -251,9 +288,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const key = getUserKey('sched_topics');
       const saved = localStorage.getItem(key);
-      return saved ? JSON.parse(saved) : INITIAL_STUDY_TOPICS;
+      return saved ? JSON.parse(saved) : getInitialTopicsForUser(currentUserId);
     } catch {
-      return INITIAL_STUDY_TOPICS;
+      return getInitialTopicsForUser(currentUserId);
     }
   });
 
@@ -269,36 +306,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     notes: '',
   });
 
-  // When active user switches, reload their isolated data from storage
+  // When active user switches, reload their data cleanly
   useEffect(() => {
     if (!currentUserId) return;
     try {
       const savedCourses = localStorage.getItem(getUserKey('sched_courses'));
-      setCourses(savedCourses ? JSON.parse(savedCourses) : INITIAL_COURSES);
+      setCourses(savedCourses ? JSON.parse(savedCourses) : getInitialCoursesForUser(currentUserId));
 
       const savedEvents = localStorage.getItem(getUserKey('sched_events'));
-      setEvents(savedEvents ? JSON.parse(savedEvents) : INITIAL_EVENTS);
+      setEvents(savedEvents ? JSON.parse(savedEvents) : getInitialEventsForUser(currentUserId));
 
       const savedTasks = localStorage.getItem(getUserKey('sched_tasks'));
-      setTasks(savedTasks ? JSON.parse(savedTasks) : INITIAL_TASKS);
+      setTasks(savedTasks ? JSON.parse(savedTasks) : getInitialTasksForUser(currentUserId));
 
       const savedSessions = localStorage.getItem(getUserKey('sched_sessions'));
-      setStudySessions(savedSessions ? JSON.parse(savedSessions) : INITIAL_STUDY_SESSIONS);
+      setStudySessions(savedSessions ? JSON.parse(savedSessions) : getInitialSessionsForUser(currentUserId));
 
       const savedGoals = localStorage.getItem(getUserKey('sched_goals'));
-      setStudyGoals(savedGoals ? JSON.parse(savedGoals) : INITIAL_STUDY_GOALS);
+      setStudyGoals(savedGoals ? JSON.parse(savedGoals) : getInitialGoalsForUser(currentUserId));
 
       const savedTopics = localStorage.getItem(getUserKey('sched_topics'));
-      setStudyTopics(savedTopics ? JSON.parse(savedTopics) : INITIAL_STUDY_TOPICS);
+      setStudyTopics(savedTopics ? JSON.parse(savedTopics) : getInitialTopicsForUser(currentUserId));
 
       const savedSettings = localStorage.getItem(getUserKey('sched_settings'));
-      setSettings(savedSettings ? JSON.parse(savedSettings) : INITIAL_SETTINGS);
+      setSettings(savedSettings ? JSON.parse(savedSettings) : DEFAULT_SETTINGS);
     } catch (e) {
-      console.error('Error reloading user data', e);
+      console.error('Error switching user storage', e);
     }
   }, [currentUserId]);
 
-  // Sync state changes with current user's local storage key
+  // Sync state changes with current user's local storage
   useEffect(() => {
     if (currentUserId) localStorage.setItem(getUserKey('sched_courses'), JSON.stringify(courses));
   }, [courses, currentUserId]);
@@ -331,22 +368,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       document.documentElement.classList.remove('dark');
     }
   }, [settings, currentUserId]);
-
-  // Background focus timer
-  useEffect(() => {
-    let interval: any = null;
-    if (focusState.isRunning) {
-      interval = setInterval(() => {
-        setFocusState((prev) => {
-          if (!prev.isRunning || prev.isBreak) return prev;
-          return { ...prev, elapsedFocusSeconds: prev.elapsedFocusSeconds + 1 };
-        });
-      }, 1000);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [focusState.isRunning]);
 
   // Course actions
   const addCourse = (courseData: Omit<Course, 'id'>) => {
@@ -693,13 +714,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const resetToDefaults = () => {
-    setCourses(INITIAL_COURSES);
-    setEvents(INITIAL_EVENTS);
-    setTasks(INITIAL_TASKS);
-    setSettings(INITIAL_SETTINGS);
-    setStudySessions(INITIAL_STUDY_SESSIONS);
-    setStudyGoals(INITIAL_STUDY_GOALS);
-    setStudyTopics(INITIAL_STUDY_TOPICS);
+    if (currentUserId === FIKIRTE_USER_ID) {
+      setCourses(FIKIRTE_COURSES);
+      setEvents(FIKIRTE_EVENTS);
+      setTasks(FIKIRTE_TASKS);
+      setStudySessions(FIKIRTE_STUDY_SESSIONS);
+      setStudyGoals(FIKIRTE_STUDY_GOALS);
+      setStudyTopics(FIKIRTE_STUDY_TOPICS);
+    } else {
+      setCourses([]);
+      setEvents([]);
+      setTasks([]);
+      setStudySessions([]);
+      setStudyGoals([]);
+      setStudyTopics([]);
+    }
+    setSettings(DEFAULT_SETTINGS);
   };
 
   return (
@@ -708,6 +738,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         currentUser,
         login,
         register,
+        updateProfile,
         logout,
         currentScreen,
         setCurrentScreen,

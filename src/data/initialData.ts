@@ -1,12 +1,14 @@
 import { Course, ScheduleEvent, Task, UserSettings, StudySession, StudyGoal, StudyTopic } from '../types';
 
-export const INITIAL_COURSES: Course[] = [
+export const FIKIRTE_USER_ID = 'usr_fikirte';
+
+export const FIKIRTE_COURSES: Course[] = [
   {
     id: 'c_anat',
     code: 'ANAT 201',
     title: 'Human Anatomy & Lab',
-    credits: 6, // 4 chr lecture + 2 chr lab
-    color: '#ef4444', // Red
+    credits: 6,
+    color: '#ef4444',
     instructor: 'Feredegn (0912462024) / Dr. Zerihun (0912462024)',
     location: 'Lecture Hall 1 / Anatomy Lab',
     notes: 'Major foundational course. High volume of memorization and practical identification.',
@@ -16,7 +18,7 @@ export const INITIAL_COURSES: Course[] = [
     code: 'PHYS 201',
     title: 'Human Physiology',
     credits: 5,
-    color: '#3b82f6', // Blue
+    color: '#3b82f6',
     instructor: 'Zeleke (0910804000) / Haymanot (0924536903)',
     location: 'Lecture Hall 1',
     notes: 'Systemic physiology, mechanisms, and homeostasis. High credit weight.',
@@ -26,7 +28,7 @@ export const INITIAL_COURSES: Course[] = [
     code: 'BIOC 201',
     title: 'Biochemistry',
     credits: 3,
-    color: '#10b981', // Emerald
+    color: '#10b981',
     instructor: 'Abebe (0938373278)',
     location: 'Science Hall 3',
     notes: 'Metabolic pathways, enzyme kinetics, and clinical biochemistry correlations.',
@@ -35,8 +37,8 @@ export const INITIAL_COURSES: Course[] = [
     id: 'c_micro',
     code: 'MICR 201',
     title: 'Medical Microbiology & Lab',
-    credits: 3, // 2 chr + 1 chr lab
-    color: '#8b5cf6', // Purple
+    credits: 3,
+    color: '#8b5cf6',
     instructor: 'Demissew Shenikute (0923076091) / Gashaw Zewdie (0923660852)',
     location: 'Lab Room B',
     notes: 'Bacteriology, virology, immunology, and lab staining/cultures.',
@@ -46,7 +48,7 @@ export const INITIAL_COURSES: Course[] = [
     code: 'HECON 201',
     title: 'Health Economics',
     credits: 3,
-    color: '#f59e0b', // Amber
+    color: '#f59e0b',
     instructor: 'Haymanot (0921287073)',
     location: 'Hall 2',
     notes: 'Health care financing, cost-effectiveness analysis, and resource allocation.',
@@ -56,7 +58,7 @@ export const INITIAL_COURSES: Course[] = [
     code: 'EMBR 201',
     title: 'Embryology and Histology',
     credits: 2,
-    color: '#ec4899', // Pink
+    color: '#ec4899',
     instructor: 'Melaku (0924474001)',
     location: 'Histology Lab / Hall 1',
     notes: 'Tissue micro-structure, organogenesis, and developmental stages.',
@@ -66,7 +68,7 @@ export const INITIAL_COURSES: Course[] = [
     code: 'ETHC 201',
     title: 'Health Ethics and Legal',
     credits: 2,
-    color: '#06b6d4', // Cyan
+    color: '#06b6d4',
     instructor: 'Dr. Desalegn (0910676657)',
     location: 'Hall 4',
     notes: 'Bioethics, medical jurisprudence, patient rights, and legal public health duties.',
@@ -76,24 +78,22 @@ export const INITIAL_COURSES: Course[] = [
     code: 'INCL 201',
     title: 'Inclusiveness',
     credits: 2,
-    color: '#64748b', // Slate
+    color: '#64748b',
     instructor: 'Zenebe (0912152716)',
     location: 'Hall 2',
     notes: 'Special needs, gender mainstreaming, and accessible healthcare delivery.',
   },
 ];
 
-// Helper date logic
 const now = new Date();
 const pad = (n: number) => n.toString().padStart(2, '0');
 export const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 
-// 2019/2026 Academic dates matching final exams (14/05 to 28/05)
 const examYear = now.getFullYear();
 const examDate = (day: number) => `${examYear}-05-${pad(day)}`;
 
-export const INITIAL_EVENTS: ScheduleEvent[] = [
-  // --- MONDAY (Day 1) ---
+export const FIKIRTE_EVENTS: ScheduleEvent[] = [
+  // Monday
   {
     id: 'ev_m1',
     title: 'Human Anatomy Lecture',
@@ -143,7 +143,7 @@ export const INITIAL_EVENTS: ScheduleEvent[] = [
     location: 'Anatomy Dissection Lab',
   },
 
-  // --- TUESDAY (Day 2) ---
+  // Tuesday
   {
     id: 'ev_t1',
     title: 'Human Physiology Lecture',
@@ -193,7 +193,7 @@ export const INITIAL_EVENTS: ScheduleEvent[] = [
     location: 'Anatomy Lab',
   },
 
-  // --- WEDNESDAY (Day 3) ---
+  // Wednesday
   {
     id: 'ev_w1',
     title: 'Biochemistry Lecture',
@@ -243,7 +243,7 @@ export const INITIAL_EVENTS: ScheduleEvent[] = [
     location: 'Anatomy Lab',
   },
 
-  // --- THURSDAY (Day 4) ---
+  // Thursday
   {
     id: 'ev_th1',
     title: 'Human Physiology Lecture',
@@ -281,7 +281,7 @@ export const INITIAL_EVENTS: ScheduleEvent[] = [
     location: 'Microbiology Lab B',
   },
 
-  // --- FRIDAY (Day 5) ---
+  // Friday
   {
     id: 'ev_f1',
     title: 'Biochemistry Lecture',
@@ -319,7 +319,7 @@ export const INITIAL_EVENTS: ScheduleEvent[] = [
     location: 'Hall 2',
   },
 
-  // --- FINAL EXAM SCHEDULE (14/05/2019 - 28/05/2019) ---
+  // Exams
   {
     id: 'exam_1',
     title: 'Final Exam: Inclusiveness',
@@ -329,7 +329,6 @@ export const INITIAL_EVENTS: ScheduleEvent[] = [
     startTime: '09:00',
     endTime: '11:30',
     location: 'Main Auditorium',
-    notes: 'Exam 1 of 8. Review all lecture slides and legal frameworks.',
   },
   {
     id: 'exam_2',
@@ -340,7 +339,6 @@ export const INITIAL_EVENTS: ScheduleEvent[] = [
     startTime: '09:00',
     endTime: '11:30',
     location: 'Medical Exam Center',
-    notes: 'Microscope slide identification and developmental stages.',
   },
   {
     id: 'exam_3',
@@ -351,7 +349,6 @@ export const INITIAL_EVENTS: ScheduleEvent[] = [
     startTime: '09:00',
     endTime: '12:00',
     location: 'Anatomy Amphitheater',
-    notes: '6 credit hour major exam. Comprehensive cadaveric and systemic anatomy.',
   },
   {
     id: 'exam_4',
@@ -362,7 +359,6 @@ export const INITIAL_EVENTS: ScheduleEvent[] = [
     startTime: '09:00',
     endTime: '12:00',
     location: 'Lecture Hall 1',
-    notes: '5 credit hour exam. Cardiovascular, neurophysiology, renal, and endocrine systems.',
   },
   {
     id: 'exam_5',
@@ -373,7 +369,6 @@ export const INITIAL_EVENTS: ScheduleEvent[] = [
     startTime: '09:00',
     endTime: '11:30',
     location: 'Medical Exam Center',
-    notes: 'Pathogens, immunology, culture media, and antibiotic sensitivities.',
   },
   {
     id: 'exam_6',
@@ -384,7 +379,6 @@ export const INITIAL_EVENTS: ScheduleEvent[] = [
     startTime: '09:00',
     endTime: '11:30',
     location: 'Science Hall 3',
-    notes: 'Glycolysis, Krebs cycle, electron transport, lipids, and amino acids.',
   },
   {
     id: 'exam_7',
@@ -395,7 +389,6 @@ export const INITIAL_EVENTS: ScheduleEvent[] = [
     startTime: '09:00',
     endTime: '11:30',
     location: 'Hall 2',
-    notes: 'Cost-effectiveness, health financing models, demand & supply in healthcare.',
   },
   {
     id: 'exam_8',
@@ -406,202 +399,29 @@ export const INITIAL_EVENTS: ScheduleEvent[] = [
     startTime: '09:00',
     endTime: '11:30',
     location: 'Hall 4',
-    notes: 'Final exam of the semester! Medical jurisprudence, autonomy, and malpractice.',
   },
 ];
 
-/* Individual Study Hour Targets based on Credit Weight & Difficulty */
-export const INITIAL_STUDY_GOALS: StudyGoal[] = [
-  {
-    id: 'sg_anat',
-    courseId: 'c_anat',
-    weeklyTargetMinutes: 360, // 6 hours / week (6 chr total)
-    priority: 'high',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'sg_phys',
-    courseId: 'c_phys',
-    weeklyTargetMinutes: 300, // 5 hours / week (5 chr)
-    priority: 'high',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'sg_biochem',
-    courseId: 'c_biochem',
-    weeklyTargetMinutes: 240, // 4 hours / week (3 chr)
-    priority: 'high',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'sg_micro',
-    courseId: 'c_micro',
-    weeklyTargetMinutes: 180, // 3 hours / week (3 chr)
-    priority: 'medium',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'sg_hecon',
-    courseId: 'c_hecon',
-    weeklyTargetMinutes: 180, // 3 hours / week (3 chr)
-    priority: 'medium',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'sg_embryo',
-    courseId: 'c_embryo',
-    weeklyTargetMinutes: 120, // 2 hours / week (2 chr)
-    priority: 'medium',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'sg_ethics',
-    courseId: 'c_ethics',
-    weeklyTargetMinutes: 90, // 1.5 hours / week (2 chr)
-    priority: 'low',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'sg_incl',
-    courseId: 'c_incl',
-    weeklyTargetMinutes: 90, // 1.5 hours / week (2 chr)
-    priority: 'low',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
+export const FIKIRTE_STUDY_GOALS: StudyGoal[] = [
+  { id: 'sg_anat', courseId: 'c_anat', weeklyTargetMinutes: 360, priority: 'high', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'sg_phys', courseId: 'c_phys', weeklyTargetMinutes: 300, priority: 'high', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'sg_biochem', courseId: 'c_biochem', weeklyTargetMinutes: 240, priority: 'high', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'sg_micro', courseId: 'c_micro', weeklyTargetMinutes: 180, priority: 'medium', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'sg_hecon', courseId: 'c_hecon', weeklyTargetMinutes: 180, priority: 'medium', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'sg_embryo', courseId: 'c_embryo', weeklyTargetMinutes: 120, priority: 'medium', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'sg_ethics', courseId: 'c_ethics', weeklyTargetMinutes: 90, priority: 'low', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'sg_incl', courseId: 'c_incl', weeklyTargetMinutes: 90, priority: 'low', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
 ];
 
-/* Structured Curriculum Study Topics */
-export const INITIAL_STUDY_TOPICS: StudyTopic[] = [
-  // Anatomy
-  {
-    id: 'st_anat_1',
-    courseId: 'c_anat',
-    title: 'Musculoskeletal System of Upper & Lower Limbs',
-    description: 'Origins, insertions, innervations, and blood supply',
-    status: 'completed',
-    priority: 'high',
-  },
-  {
-    id: 'st_anat_2',
-    courseId: 'c_anat',
-    title: 'Neuroanatomy: Brainstem & Cranial Nerves',
-    description: 'Pathways, lesions, and autonomic ganglia',
-    status: 'in-progress',
-    priority: 'high',
-  },
-  {
-    id: 'st_anat_3',
-    courseId: 'c_anat',
-    title: 'Thoracic & Abdominal Viscera Dissection',
-    description: 'Heart chambers, great vessels, peritoneal folds, and GI vasculature',
-    status: 'not-started',
-    priority: 'high',
-  },
-
-  // Physiology
-  {
-    id: 'st_phys_1',
-    courseId: 'c_phys',
-    title: 'Cardiovascular Dynamics & Cardiac Cycle',
-    description: 'Wiggers diagram, EKG interpretation, and Starling law',
-    status: 'completed',
-    priority: 'high',
-  },
-  {
-    id: 'st_phys_2',
-    courseId: 'c_phys',
-    title: 'Renal Countercurrent Mechanism & Acid-Base Balance',
-    description: 'Glomerular filtration rate and Henderson-Hasselbalch equations',
-    status: 'in-progress',
-    priority: 'high',
-  },
-  {
-    id: 'st_phys_3',
-    courseId: 'c_phys',
-    title: 'Respiratory Gas Exchange & Hemoglobin Dissociation',
-    description: 'Bohr and Haldane effects, ventilation/perfusion ratios',
-    status: 'not-started',
-    priority: 'high',
-  },
-
-  // Biochemistry
-  {
-    id: 'st_bio_1',
-    courseId: 'c_biochem',
-    title: 'Cellular Respiration & Krebs Cycle Energetics',
-    description: 'ATP yields, electron transport complexes, and inhibitors',
-    status: 'in-progress',
-    priority: 'high',
-  },
-  {
-    id: 'st_bio_2',
-    courseId: 'c_biochem',
-    title: 'Lipid Metabolism & Beta-Oxidation',
-    description: 'Ketone body synthesis, cholesterol pathways, and dyslipidemias',
-    status: 'not-started',
-    priority: 'medium',
-  },
-
-  // Microbiology
-  {
-    id: 'st_mic_1',
-    courseId: 'c_micro',
-    title: 'Gram-Positive vs Gram-Negative Cocci & Bacilli',
-    description: 'Staining protocols, virulence factors, and antibiotic resistance',
-    status: 'in-progress',
-    priority: 'high',
-  },
-  {
-    id: 'st_mic_2',
-    courseId: 'c_micro',
-    title: 'Immunology: Humoral & Cell-Mediated Immunity',
-    description: 'MHC complexes, antibodies, and hypersensitivity reactions',
-    status: 'not-started',
-    priority: 'medium',
-  },
-
-  // Health Economics
-  {
-    id: 'st_hec_1',
-    courseId: 'c_hecon',
-    title: 'Cost-Effectiveness & Cost-Benefit Analysis',
-    description: 'DALYs, QALYs, and economic evaluation of health interventions',
-    status: 'in-progress',
-    priority: 'medium',
-  },
-
-  // Embryology
-  {
-    id: 'st_emb_1',
-    courseId: 'c_embryo',
-    title: 'Gastrulation, Germ Layers & Organogenesis',
-    description: 'Ectoderm, mesoderm, and endoderm derivative mappings',
-    status: 'not-started',
-    priority: 'medium',
-  },
-
-  // Ethics
-  {
-    id: 'st_eth_1',
-    courseId: 'c_ethics',
-    title: 'Informed Consent, Autonomy & Malpractice Law',
-    description: 'Ethiopian health legislation and medical negligence criteria',
-    status: 'not-started',
-    priority: 'low',
-  },
+export const FIKIRTE_STUDY_TOPICS: StudyTopic[] = [
+  { id: 'st_anat_1', courseId: 'c_anat', title: 'Musculoskeletal System of Upper & Lower Limbs', status: 'completed', priority: 'high' },
+  { id: 'st_anat_2', courseId: 'c_anat', title: 'Neuroanatomy: Brainstem & Cranial Nerves', status: 'in-progress', priority: 'high' },
+  { id: 'st_phys_1', courseId: 'c_phys', title: 'Cardiovascular Dynamics & Cardiac Cycle', status: 'completed', priority: 'high' },
+  { id: 'st_bio_1', courseId: 'c_biochem', title: 'Cellular Respiration & Krebs Cycle Energetics', status: 'in-progress', priority: 'high' },
+  { id: 'st_mic_1', courseId: 'c_micro', title: 'Gram-Positive vs Gram-Negative Cocci & Bacilli', status: 'in-progress', priority: 'high' },
 ];
 
-/* Realistic Study Sessions that fit cleanly around classes & labs without collision */
-export const INITIAL_STUDY_SESSIONS: StudySession[] = [
-  // Monday Evening (After Anatomy Lab ends at 17:20)
+export const FIKIRTE_STUDY_SESSIONS: StudySession[] = [
   {
     id: 'ss_ph_1',
     courseId: 'c_anat',
@@ -614,27 +434,9 @@ export const INITIAL_STUDY_SESSIONS: StudySession[] = [
     goal: 'Review brachial plexus branches and forearm muscle compartments',
     status: 'planned',
     actualDurationMinutes: 0,
-    notes: 'Bring Netter Atlas and dissection checklists.',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
-  {
-    id: 'ss_ph_2',
-    courseId: 'c_embryo',
-    topic: 'Embryology Slide Identification',
-    studyType: 'learning',
-    date: todayStr,
-    startTime: '20:00',
-    endTime: '21:00',
-    durationMinutes: 60,
-    goal: 'Draw neural tube development and somite differentiation stages',
-    status: 'planned',
-    actualDurationMinutes: 0,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-
-  // Tuesday Evening (After Anatomy Lab ends at 17:20)
   {
     id: 'ss_ph_3',
     courseId: 'c_phys',
@@ -644,106 +446,7 @@ export const INITIAL_STUDY_SESSIONS: StudySession[] = [
     startTime: '18:00',
     endTime: '19:30',
     durationMinutes: 90,
-    goal: 'Solve 15 clinical ECG tracings and draw fast-response action potentials',
-    status: 'planned',
-    actualDurationMinutes: 0,
-    notes: 'Reference Guyton & Hall Chapter 9.',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'ss_ph_4',
-    courseId: 'c_hecon',
-    topic: 'Health Economics: Demand Elasticity & Health Insurance',
-    studyType: 'learning',
-    date: todayStr,
-    startTime: '20:00',
-    endTime: '21:00',
-    durationMinutes: 60,
-    goal: 'Understand moral hazard and adverse selection in community-based health insurance',
-    status: 'planned',
-    actualDurationMinutes: 0,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-
-  // Wednesday Evening
-  {
-    id: 'ss_ph_5',
-    courseId: 'c_biochem',
-    topic: 'Biochemistry: Glycolysis & Regulation Enzymes',
-    studyType: 'revision',
-    date: todayStr,
-    startTime: '18:00',
-    endTime: '19:30',
-    durationMinutes: 90,
-    goal: 'Memorize phosphofructokinase-1 regulators and hormonal control',
-    status: 'planned',
-    actualDurationMinutes: 0,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-
-  // Thursday Evening (After Microbiology Lab ends at 17:20)
-  {
-    id: 'ss_ph_6',
-    courseId: 'c_micro',
-    topic: 'Microbiology: Gram-Positive Cocci Identification',
-    studyType: 'revision',
-    date: todayStr,
-    startTime: '18:00',
-    endTime: '19:30',
-    durationMinutes: 90,
-    goal: 'Flowchart differentiation: Catalase and Coagulase tests for Staph & Strep',
-    status: 'planned',
-    actualDurationMinutes: 0,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-
-  // Friday Afternoon (After Health Economics ends at 14:20)
-  {
-    id: 'ss_ph_7',
-    courseId: 'c_ethics',
-    topic: 'Health Ethics: Patient Autonomy Case Studies',
-    studyType: 'learning',
-    date: todayStr,
-    startTime: '15:30',
-    endTime: '17:00',
-    durationMinutes: 90,
-    goal: 'Analyze confidentiality exceptions under public health emergencies',
-    status: 'planned',
-    actualDurationMinutes: 0,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-
-  // Saturday Morning Focus (No University Classes)
-  {
-    id: 'ss_ph_8',
-    courseId: 'c_anat',
-    topic: 'Anatomy Weekend Deep Dive: Cranial Nerves',
-    studyType: 'exam-prep',
-    date: todayStr,
-    startTime: '09:00',
-    endTime: '11:00',
-    durationMinutes: 120,
-    goal: 'Master cranial nerve exit foramina, functional components, and reflex arcs',
-    status: 'planned',
-    actualDurationMinutes: 0,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: 'ss_ph_9',
-    courseId: 'c_phys',
-    topic: 'Physiology Weekend Review: Renal Function & Acid-Base',
-    studyType: 'exam-prep',
-    date: todayStr,
-    startTime: '14:00',
-    endTime: '16:00',
-    durationMinutes: 120,
-    goal: 'Practice arterial blood gas (ABG) clinical interpretation cases',
+    goal: 'Solve clinical ECG tracings and draw fast-response action potentials',
     status: 'planned',
     actualDurationMinutes: 0,
     createdAt: new Date().toISOString(),
@@ -751,7 +454,7 @@ export const INITIAL_STUDY_SESSIONS: StudySession[] = [
   },
 ];
 
-export const INITIAL_TASKS: Task[] = [
+export const FIKIRTE_TASKS: Task[] = [
   {
     id: 't_ph_1',
     title: 'Anatomy Lab Dissection Log: Forearm & Hand',
@@ -761,7 +464,6 @@ export const INITIAL_TASKS: Task[] = [
     priority: 'high',
     estimatedMinutes: 90,
     status: 'in-progress',
-    notes: 'Label all diagrams and submit to Dr. Zerihun.',
   },
   {
     id: 't_ph_2',
@@ -772,35 +474,13 @@ export const INITIAL_TASKS: Task[] = [
     priority: 'high',
     estimatedMinutes: 60,
     status: 'todo',
-    notes: 'Include colony morphology and catalase reaction results.',
-  },
-  {
-    id: 't_ph_3',
-    title: 'Health Economics Policy Brief on Universal Health Coverage',
-    courseId: 'c_hecon',
-    type: 'project',
-    dueAt: `${todayStr}T12:00`,
-    priority: 'medium',
-    estimatedMinutes: 180,
-    status: 'todo',
-    notes: 'Max 3 pages reviewing community health insurance financing.',
-  },
-  {
-    id: 't_ph_4',
-    title: 'Ethics Case Study: Refusal of Blood Transfusion',
-    courseId: 'c_ethics',
-    type: 'assignment',
-    dueAt: `${todayStr}T18:00`,
-    priority: 'medium',
-    estimatedMinutes: 60,
-    status: 'todo',
   },
 ];
 
-export const INITIAL_SETTINGS: UserSettings = {
+export const DEFAULT_SETTINGS: UserSettings = {
   studyHoursStart: '08:00',
   studyHoursEnd: '22:00',
-  availableDays: [1, 2, 3, 4, 5, 6], // Monday through Saturday
+  availableDays: [1, 2, 3, 4, 5, 6],
   notificationsEnabled: true,
   theme: 'light',
   defaultFocusDuration: 50,

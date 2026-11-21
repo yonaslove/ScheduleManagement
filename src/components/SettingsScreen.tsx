@@ -11,10 +11,12 @@ import {
   RotateCcw, 
   Check, 
   AlertCircle,
-  Globe
+  User,
+  Lock,
+  Camera,
+  Save
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { translations, Language } from '../locales/translations';
 
 export const SettingsScreen: React.FC = () => {
   const { 
@@ -22,20 +24,20 @@ export const SettingsScreen: React.FC = () => {
     updateSettings, 
     exportData, 
     importData, 
-    resetToDefaults 
+    resetToDefaults,
+    currentUser,
+    updateProfile 
   } = useApp();
 
-  const currentLang = (settings.language || 'en') as Language;
-  const t = translations[currentLang] || translations.en;
+  // Profile edit states
+  const [profileName, setProfileName] = useState(currentUser?.name || '');
+  const [profileProgram, setProfileProgram] = useState(currentUser?.program || '');
+  const [profileAvatarUrl, setProfileAvatarUrl] = useState(currentUser?.avatarUrl || '');
+  const [newPassword, setNewPassword] = useState('');
+  const [profileSaved, setProfileSaved] = useState(false);
 
   const [notificationStatus, setNotificationStatus] = useState<string>('');
   const [importStatus, setImportStatus] = useState<{ success: boolean; msg: string } | null>(null);
-
-  const languages = [
-    { code: 'en', name: 'English', native: 'English' },
-    { code: 'am', name: 'Amharic', native: 'አማርኛ' },
-    { code: 'om', name: 'Afaan Oromoo', native: 'Afaan Oromoo' },
-  ];
 
   const daysOfWeek = [
     { label: 'Sun', value: 0 },
@@ -46,6 +48,30 @@ export const SettingsScreen: React.FC = () => {
     { label: 'Fri', value: 5 },
     { label: 'Sat', value: 6 },
   ];
+
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateProfile({
+      name: profileName.trim(),
+      program: profileProgram.trim(),
+      avatarUrl: profileAvatarUrl.trim() || undefined,
+      password: newPassword.trim() ? newPassword.trim() : undefined,
+    });
+    setNewPassword('');
+    setProfileSaved(true);
+    setTimeout(() => setProfileSaved(false), 3000);
+  };
+
+  const handleAvatarFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setProfileAvatarUrl(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleDayToggle = (dayVal: number) => {
     const current = settings.availableDays;
@@ -109,48 +135,113 @@ export const SettingsScreen: React.FC = () => {
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm">
         <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
           <SettingsIcon className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-          <span>{t.settingsTitle}</span>
+          <span>Account & System Settings</span>
         </h2>
         <p className="text-xs text-slate-400 mt-0.5">
-          {t.settingsSubtitle}
+          Manage your personal profile, photo, password, study window, and application preferences.
         </p>
       </div>
 
-      {/* 1. Language Preference */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
+      {/* 1. Profile Management (Name, Picture, Password) */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-5">
         <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
-          <Globe className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+          <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           <h3 className="text-base font-bold text-slate-800 dark:text-white">
-            {t.languagePreference}
+            Personal Student Profile
           </h3>
         </div>
 
-        <p className="text-xs text-slate-500 dark:text-slate-400">
-          {t.languageSubtitle}
-        </p>
+        {profileSaved && (
+          <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-xs rounded-2xl flex items-center gap-2 border border-emerald-200 dark:border-emerald-900/50">
+            <Check className="w-4 h-4 shrink-0" />
+            <span>Profile and credentials updated successfully!</span>
+          </div>
+        )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl pt-1">
-          {languages.map((lang) => {
-            const isSelected = (settings.language || 'en') === lang.code;
-            return (
-              <button
-                key={lang.code}
-                onClick={() => updateSettings({ language: lang.code as any })}
-                className={`p-3.5 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between ${
-                  isSelected
-                    ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                    : 'border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
-                }`}
-              >
-                <span className="text-sm font-bold block">{lang.native}</span>
-                <span className="text-xs text-slate-400 mt-1">{lang.name}</span>
-                {isSelected && (
-                  <Check className="w-4 h-4 text-indigo-600 dark:text-indigo-400 self-end mt-2" />
+        <form onSubmit={handleSaveProfile} className="space-y-5">
+          {/* Avatar Upload */}
+          <div className="flex items-center gap-5">
+            <div className="relative group">
+              <div className="w-20 h-20 rounded-full overflow-hidden bg-gradient-to-tr from-indigo-500 to-violet-600 flex items-center justify-center text-white text-xl font-bold shadow-md">
+                {profileAvatarUrl ? (
+                  <img src={profileAvatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  profileName ? profileName.slice(0, 2).toUpperCase() : 'ST'
                 )}
-              </button>
-            );
-          })}
-        </div>
+              </div>
+              <label className="absolute inset-0 bg-black/40 rounded-full flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 transition cursor-pointer">
+                <Camera className="w-5 h-5" />
+                <span className="text-[9px] font-semibold mt-0.5">Change</span>
+                <input type="file" accept="image/*" onChange={handleAvatarFile} className="hidden" />
+              </label>
+            </div>
+
+            <div>
+              <p className="text-xs font-bold text-slate-800 dark:text-white">Profile Photo</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">Click photo to upload or enter image URL below</p>
+              <input
+                type="text"
+                placeholder="https://example.com/photo.jpg"
+                value={profileAvatarUrl}
+                onChange={(e) => setProfileAvatarUrl(e.target.value)}
+                className="mt-2 w-full max-w-sm px-3 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                Full Name
+              </label>
+              <input
+                type="text"
+                required
+                value={profileName}
+                onChange={(e) => setProfileName(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white text-xs font-semibold"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                Department / Academic Program
+              </label>
+              <input
+                type="text"
+                value={profileProgram}
+                onChange={(e) => setProfileProgram(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white text-xs font-semibold"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              Change Password (Leave blank to keep current)
+            </label>
+            <div className="relative max-w-md">
+              <Lock className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
+              <input
+                type="password"
+                placeholder="Enter new password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full pl-10 pr-3.5 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-white text-xs"
+              />
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <button
+              type="submit"
+              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-2 cursor-pointer transition active:scale-95"
+            >
+              <Save className="w-4 h-4" />
+              <span>Save Profile Changes</span>
+            </button>
+          </div>
+        </form>
       </div>
 
       {/* 2. Study Hours & Availability */}
@@ -158,14 +249,18 @@ export const SettingsScreen: React.FC = () => {
         <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
           <Clock className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           <h3 className="text-base font-bold text-slate-800 dark:text-white">
-            {t.studyWindow}
+            Daily Study Window
           </h3>
         </div>
+
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          Set your preferred daily focus hours. Timetable study blocks and task estimates will align within this window.
+        </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              {t.studyStart}
+              Study Start Time
             </label>
             <input
               type="time"
@@ -176,7 +271,7 @@ export const SettingsScreen: React.FC = () => {
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              {t.studyEnd}
+              Study End Time
             </label>
             <input
               type="time"
@@ -193,7 +288,7 @@ export const SettingsScreen: React.FC = () => {
         <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
           <Calendar className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           <h3 className="text-base font-bold text-slate-800 dark:text-white">
-            {t.availableDays}
+            Available Study Days
           </h3>
         </div>
 
@@ -222,7 +317,7 @@ export const SettingsScreen: React.FC = () => {
         <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
           <Sun className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           <h3 className="text-base font-bold text-slate-800 dark:text-white">
-            {t.themeAppearance}
+            Theme & Appearance
           </h3>
         </div>
 
@@ -238,7 +333,7 @@ export const SettingsScreen: React.FC = () => {
               }`}
             >
               {thm === 'light' ? <Sun className="w-5 h-5" /> : thm === 'dark' ? <Moon className="w-5 h-5" /> : <SettingsIcon className="w-5 h-5" />}
-              <span>{t[thm]}</span>
+              <span>{thm}</span>
             </button>
           ))}
         </div>
@@ -249,7 +344,7 @@ export const SettingsScreen: React.FC = () => {
         <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
           <Bell className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           <h3 className="text-base font-bold text-slate-800 dark:text-white">
-            {t.notifications}
+            Notification Preferences
           </h3>
         </div>
 
@@ -259,7 +354,7 @@ export const SettingsScreen: React.FC = () => {
               Browser Alerts
             </p>
             <p className="text-[11px] text-slate-400">
-              {settings.notificationsEnabled ? 'Active' : 'Disabled'}
+              {settings.notificationsEnabled ? 'Notifications are active' : 'Notifications are disabled'}
             </p>
           </div>
 
@@ -271,7 +366,7 @@ export const SettingsScreen: React.FC = () => {
                 : 'bg-indigo-600 text-white hover:bg-indigo-700'
             }`}
           >
-            {settings.notificationsEnabled ? 'Active' : t.enableNotifications}
+            {settings.notificationsEnabled ? 'Active (Test Alert)' : 'Enable Notifications'}
           </button>
         </div>
 
@@ -282,12 +377,12 @@ export const SettingsScreen: React.FC = () => {
         )}
       </div>
 
-      {/* 6. Data Backup & Restore */}
+      {/* 6. Data Backup & Reset */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
         <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
           <Download className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
           <h3 className="text-base font-bold text-slate-800 dark:text-white">
-            {t.dataBackup}
+            Data Backup & Restore
           </h3>
         </div>
 
@@ -307,15 +402,15 @@ export const SettingsScreen: React.FC = () => {
         <div className="flex flex-wrap items-center gap-3 pt-2">
           <button
             onClick={handleExport}
-            className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white text-xs font-semibold rounded-xl flex items-center gap-2 cursor-pointer transition"
+            className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-white text-xs font-semibold rounded-xl flex items-center gap-2 cursor-pointer transition"
           >
             <Download className="w-4 h-4" />
-            <span>{t.exportJson}</span>
+            <span>Export My Data (JSON)</span>
           </button>
 
-          <label className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white text-xs font-semibold rounded-xl flex items-center gap-2 cursor-pointer transition">
+          <label className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-white text-xs font-semibold rounded-xl flex items-center gap-2 cursor-pointer transition">
             <Upload className="w-4 h-4" />
-            <span>{t.importBackup}</span>
+            <span>Import Backup</span>
             <input
               type="file"
               accept=".json"
@@ -326,14 +421,14 @@ export const SettingsScreen: React.FC = () => {
 
           <button
             onClick={() => {
-              if (window.confirm('Reset all data to default?')) {
+              if (window.confirm('Clear all courses and schedule events for this account?')) {
                 resetToDefaults();
               }
             }}
             className="px-4 py-2.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 text-xs font-semibold rounded-xl flex items-center gap-2 cursor-pointer transition ml-auto"
           >
             <RotateCcw className="w-4 h-4" />
-            <span>{t.resetDemo}</span>
+            <span>Clear My Schedule Data</span>
           </button>
         </div>
       </div>
