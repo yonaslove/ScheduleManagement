@@ -75,16 +75,23 @@ export const PlanMyWeekModal: React.FC<PlanMyWeekModalProps> = ({ isOpen, onClos
       : startOfWeek(new Date(), { weekStartsOn: 1 });
     const suggestions: SuggestedSession[] = [];
 
-    // Candidate study time slots within student's study window
+    // Candidate study time slots within student's study window (spaced across the day)
     const candidateSlots = [
       { start: '16:00', end: '17:30', duration: 90 },
       { start: '18:00', end: '19:30', duration: 90 },
-      { start: '20:00', end: '21:30', duration: 90 },
+      { start: '19:45', end: '21:15', duration: 90 },
       { start: '10:00', end: '11:30', duration: 90 },
       { start: '14:00', end: '15:30', duration: 90 },
     ];
 
     let sessionCounter = 0;
+
+    // Helper: checks conflict with existing events AND any already planned suggestions in this run
+    const hasSlotConflict = (dateStr: string, start: string, end: string) => {
+      const conflict = checkScheduleConflict(dateStr, start, end);
+      if (conflict.hasConflict) return true;
+      return suggestions.some((s) => s.date === dateStr && start < s.endTime && end > s.startTime);
+    };
 
     // 1. First, automatically allocate dedicated blocks for pending tasks (assignments, group work, projects)
     const pendingTasks = tasks.filter((t) => t.status !== 'completed');
@@ -99,9 +106,7 @@ export const PlanMyWeekModal: React.FC<PlanMyWeekModalProps> = ({ isOpen, onClos
         const dateStr = format(dayDate, 'yyyy-MM-dd');
 
         for (const slot of candidateSlots) {
-          const conflict = checkScheduleConflict(dateStr, slot.start, slot.end);
-          const alreadyPlanned = suggestions.some((s) => s.date === dateStr && s.startTime === slot.start);
-          if (!conflict.hasConflict && !alreadyPlanned) {
+          if (!hasSlotConflict(dateStr, slot.start, slot.end)) {
             sessionCounter++;
             let type: StudyType = 'assignment';
             if (t.type === 'project') type = 'group-work';
@@ -147,9 +152,7 @@ export const PlanMyWeekModal: React.FC<PlanMyWeekModalProps> = ({ isOpen, onClos
         for (const slot of candidateSlots) {
           if (allocatedMins >= targetMins) break;
 
-          const conflict = checkScheduleConflict(dateStr, slot.start, slot.end);
-          const alreadyPlanned = suggestions.some((s) => s.date === dateStr && s.startTime === slot.start);
-          if (!conflict.hasConflict && !alreadyPlanned) {
+          if (!hasSlotConflict(dateStr, slot.start, slot.end)) {
             const topicObj = topics[sessionCounter % Math.max(topics.length, 1)];
             const topicTitle = topicObj ? topicObj.title : `Core Concepts & Practice`;
 

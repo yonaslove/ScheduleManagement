@@ -311,12 +311,22 @@ export const WeeklyPlanTab: React.FC = () => {
                   ))}
 
                   {/* Study Session Blocks */}
-                  {daySessions.map((session) => {
+                  {daySessions.map((session, sIdx) => {
                     const course = getCourse(session.courseId);
                     const pos = getPositionStyles(session.startTime, session.endTime);
                     const isDone = session.status === 'completed';
                     const isMissed = session.status === 'missed';
                     const baseColor = course?.color || '#10b981';
+
+                    // Detect overlapping sessions within the same time window on the same day
+                    const concurrentSessions = daySessions.filter(
+                      (other) =>
+                        session.startTime < other.endTime && session.endTime > other.startTime
+                    );
+                    const isOverlapping = concurrentSessions.length > 1;
+                    const overlapIdx = concurrentSessions.findIndex((s) => s.id === session.id);
+                    const widthPercent = isOverlapping ? 100 / concurrentSessions.length : 100;
+                    const leftOffset = isOverlapping ? overlapIdx * widthPercent : 0;
 
                     return (
                       <div
@@ -331,12 +341,13 @@ export const WeeklyPlanTab: React.FC = () => {
                         }}
                         style={{
                           ...pos,
+                          left: `calc(${leftOffset}% + 2px)`,
+                          width: `calc(${widthPercent}% - 4px)`,
                           borderLeft: `4px solid ${isMissed ? '#f59e0b' : baseColor}`,
-                          backgroundColor: isMissed ? '#fef3c730' : `${baseColor}15`,
                         }}
-                        className={`absolute inset-x-1 p-2 rounded-r-xl overflow-hidden cursor-pointer hover:shadow-md transition-all z-5 border-t border-r border-b ${
-                          isDone ? 'opacity-60' : ''
-                        } border-slate-200/60 dark:border-slate-700/60`}
+                        className={`absolute p-2 rounded-xl overflow-hidden cursor-pointer hover:shadow-lg hover:z-20 transition-all z-10 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm ${
+                          isDone ? 'opacity-70' : ''
+                        }`}
                       >
                         <div className="flex items-center justify-between gap-1">
                           <span
@@ -345,27 +356,27 @@ export const WeeklyPlanTab: React.FC = () => {
                           >
                             {course ? course.code : 'Study'}
                           </span>
-                          <span className="text-[10px] text-slate-500 font-medium">
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium shrink-0">
                             {session.startTime}
                           </span>
                         </div>
 
-                        <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate mt-0.5">
+                        <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate mt-0.5 leading-snug">
                           {session.topic}
                         </h4>
 
                         <div className="flex items-center gap-1.5 mt-1">
-                          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-slate-200/60 dark:bg-slate-800 text-slate-600 dark:text-slate-300 capitalize">
+                          <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 capitalize truncate">
                             {session.studyType}
                           </span>
                           {isMissed && (
-                            <span className="text-[9px] font-bold text-amber-600 bg-amber-100 dark:bg-amber-950 px-1 py-0.5 rounded">
+                            <span className="text-[9px] font-bold text-amber-600 bg-amber-100 dark:bg-amber-950 px-1 py-0.5 rounded shrink-0">
                               MISSED
                             </span>
                           )}
                           {isDone && (
-                            <span className="text-[9px] font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-950 px-1 py-0.5 rounded">
-                              DONE ({session.actualDurationMinutes}m)
+                            <span className="text-[9px] font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-950 px-1 py-0.5 rounded shrink-0">
+                              DONE
                             </span>
                           )}
                         </div>
