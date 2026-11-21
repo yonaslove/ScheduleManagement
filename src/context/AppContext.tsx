@@ -190,9 +190,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       createdAt: new Date().toISOString(),
     };
     setAccounts((prev) => [...prev, newAcc]);
-    setCurrentUserId(newAcc.id);
-    setCurrentScreen('dashboard');
-    return { success: true, message: 'Account created successfully.' };
+    // Do NOT auto-login or redirect to dashboard immediately.
+    // The user will be redirected to the login form to enter their credentials.
+    return { success: true, message: 'Account created successfully! Please sign in.' };
   };
 
   const updateProfile = (updates: { name?: string; program?: string; avatarUrl?: string; password?: string }) => {

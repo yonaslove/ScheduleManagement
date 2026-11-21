@@ -52,7 +52,11 @@ export const AuthScreen: React.FC = () => {
       if (!res.success) {
         setErrorMsg(res.message);
       } else {
-        setSuccessMsg('Account created successfully! Logging you in...');
+        // Keep the entered email, clear password & name, and switch to Login view
+        setIsLoginView(true);
+        setPassword('');
+        setName('');
+        setSuccessMsg('Account created successfully! Please sign in with your password.');
       }
     }
   };
