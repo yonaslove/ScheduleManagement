@@ -395,7 +395,7 @@ export const WeeklyPlanTab: React.FC = () => {
                                 style={{ backgroundColor: baseColor }}
                               />
                               <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                                {course ? `${course.code} - ${course.name}` : 'Study Session'}
+                                {course ? `${course.code} - ${course.title}` : 'Study Session'}
                               </span>
                             </div>
                             <span
