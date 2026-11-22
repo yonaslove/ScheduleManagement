@@ -75,13 +75,15 @@ export const PlanMyWeekModal: React.FC<PlanMyWeekModalProps> = ({ isOpen, onClos
       : startOfWeek(new Date(), { weekStartsOn: 1 });
     const suggestions: SuggestedSession[] = [];
 
-    // Candidate study time slots within student's study window (spaced across the day)
+    // Candidate study time slots within student's study window (spaced across morning, afternoon, and evening)
     const candidateSlots = [
-      { start: '16:00', end: '17:30', duration: 90 },
-      { start: '18:00', end: '19:30', duration: 90 },
       { start: '19:45', end: '21:15', duration: 90 },
-      { start: '10:00', end: '11:30', duration: 90 },
+      { start: '18:00', end: '19:30', duration: 90 },
+      { start: '16:00', end: '17:30', duration: 90 },
+      { start: '06:30', end: '08:00', duration: 90 },
       { start: '14:00', end: '15:30', duration: 90 },
+      { start: '10:00', end: '11:30', duration: 90 },
+      { start: '21:15', end: '22:30', duration: 75 },
     ];
 
     let sessionCounter = 0;

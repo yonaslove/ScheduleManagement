@@ -345,11 +345,11 @@ export const WeeklyPlanTab: React.FC = () => {
                           width: `calc(${widthPercent}% - 4px)`,
                           borderLeft: `4px solid ${isMissed ? '#f59e0b' : baseColor}`,
                         }}
-                        className={`absolute p-2 rounded-xl overflow-hidden cursor-pointer hover:shadow-lg hover:z-20 transition-all z-10 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm ${
+                        className={`group absolute p-2 rounded-xl cursor-pointer hover:shadow-2xl hover:z-50 transition-all z-10 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm ${
                           isDone ? 'opacity-70' : ''
                         }`}
                       >
-                        <div className="flex items-center justify-between gap-1">
+                        <div className="flex items-center justify-between gap-1 overflow-hidden">
                           <span
                             className="text-[10px] font-bold uppercase truncate"
                             style={{ color: isMissed ? '#d97706' : baseColor }}
@@ -365,7 +365,7 @@ export const WeeklyPlanTab: React.FC = () => {
                           {session.topic}
                         </h4>
 
-                        <div className="flex items-center gap-1.5 mt-1">
+                        <div className="flex items-center gap-1.5 mt-1 overflow-hidden">
                           <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 capitalize truncate">
                             {session.studyType}
                           </span>
@@ -379,6 +379,87 @@ export const WeeklyPlanTab: React.FC = () => {
                               DONE
                             </span>
                           )}
+                        </div>
+
+                        {/* Rich Hover Popover Card: Displays full session details on hover without cutting off */}
+                        <div
+                          className={`invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-200 pointer-events-none fixed z-[9999] w-72 p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl text-left hidden md:block backdrop-blur-md`}
+                          style={{
+                            transform: overlapIdx > 2 ? 'translateX(-85%) translateY(-105%)' : 'translateX(10%) translateY(-105%)',
+                          }}
+                        >
+                          <div className="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-100 dark:border-slate-800">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span
+                                className="w-2.5 h-2.5 rounded-full shrink-0"
+                                style={{ backgroundColor: baseColor }}
+                              />
+                              <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                                {course ? `${course.code} - ${course.name}` : 'Study Session'}
+                              </span>
+                            </div>
+                            <span
+                              className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full shrink-0 ${
+                                isDone
+                                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+                                  : isMissed
+                                  ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
+                                  : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300'
+                              }`}
+                            >
+                              {session.status}
+                            </span>
+                          </div>
+
+                          <div className="space-y-1.5 text-xs">
+                            <div>
+                              <span className="text-[10px] font-semibold text-slate-400 block uppercase tracking-wider">
+                                Topic
+                              </span>
+                              <p className="font-semibold text-slate-800 dark:text-slate-100 break-words leading-snug">
+                                {session.topic}
+                              </p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 pt-1">
+                              <div>
+                                <span className="text-[10px] font-semibold text-slate-400 block uppercase tracking-wider">
+                                  Time & Duration
+                                </span>
+                                <p className="text-slate-700 dark:text-slate-300 font-medium">
+                                  {session.startTime} – {session.endTime} ({session.durationMinutes}m)
+                                </p>
+                              </div>
+                              <div>
+                                <span className="text-[10px] font-semibold text-slate-400 block uppercase tracking-wider">
+                                  Type
+                                </span>
+                                <p className="text-slate-700 dark:text-slate-300 capitalize font-medium">
+                                  {session.studyType}
+                                </p>
+                              </div>
+                            </div>
+
+                            {session.goal && (
+                              <div className="pt-1">
+                                <span className="text-[10px] font-semibold text-slate-400 block uppercase tracking-wider">
+                                  Goal / Deliverable
+                                </span>
+                                <p className="text-[11px] text-slate-600 dark:text-slate-300 italic break-words leading-relaxed">
+                                  "{session.goal}"
+                                </p>
+                              </div>
+                            )}
+
+                            {course?.instructor && (
+                              <div className="pt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                                <span className="text-[10px] font-semibold text-slate-400 block uppercase tracking-wider">
+                                  Instructor
+                                </span>
+                                <p>{course.instructor} {course.location ? `• ${course.location}` : ''}</p>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
