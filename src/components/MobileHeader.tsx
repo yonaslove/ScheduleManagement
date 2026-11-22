@@ -50,3 +50,4 @@ export const MobileHeader: React.FC = () => {
     </header>
   );
 };
+

@@ -113,3 +113,4 @@ export const exportScheduleToExcel = (
   const filename = `${cleanName}_Full_Academic_Schedule.xlsx`;
   XLSX.writeFile(wb, filename);
 };
+
